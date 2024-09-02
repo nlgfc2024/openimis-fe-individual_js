@@ -21,6 +21,10 @@
     "firstName": "First Name",
     "lastName": "Last Name",
     "dob": "Day of birth",
+    "jsonExt": {
+      "formNumber": "UBR Form No.",
+      "district": "District"
+    },
     "isDeleted": "Show Deleted",
     "addButtonTooltip": "Add Individual to Group",
     "additonalFields": {
@@ -163,6 +167,10 @@
     "noHeadSpecified": "head not specified",
     "individual.firstName": "Individual First Name",
     "individual.lastName": "Individual Last Name",
+    "jsonExt": {
+      "formNumber": "UBR Form No.",
+      "district": "District"
+    },
     "pageTitle": "Group {id}",
     "headPanelTitle": "General information",
     "mandatoryFieldsEmptyError": "* These fields are required",

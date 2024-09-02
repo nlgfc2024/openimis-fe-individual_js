@@ -235,10 +235,22 @@ function reducer(
         ...state,
         fetchingIndividuals: false,
         fetchedIndividuals: true,
-        individuals: parseData(action.payload.data.individual)?.map((individual) => ({
-          ...individual,
-          id: decodeId(individual.id),
-        })),
+        individuals: parseData(action.payload.data.individual)?.map((individual) => {
+          // Parse the jsonExt property if it exists and is a valid JSON string
+          let jsonExtParsed = null;
+          try {
+            jsonExtParsed = individual.jsonExt ? JSON.parse(individual.jsonExt) : null;
+          } catch (error) {
+            console.error('Error parsing jsonExt:', error);
+            jsonExtParsed = null; // Set to null or handle the error as needed
+          }
+          
+          return {
+            ...individual,
+            id: decodeId(individual.id),
+            jsonExt: jsonExtParsed, // Replace stringified JSON with the parsed object
+          };
+        }),
         individualsPageInfo: pageInfo(action.payload.data.individual),
         individualsTotalCount: action.payload.data.individual ? action.payload.data.individual.totalCount : null,
         errorIndividuals: formatGraphQLError(action.payload),
@@ -292,10 +304,29 @@ function reducer(
         ...state,
         fetchingGroups: false,
         fetchedGroups: true,
-        groups: parseData(action.payload.data.group)?.map((group) => ({
-          ...group,
-          id: decodeId(group.id),
-        })),
+        groups: parseData(action.payload.data.group)?.map((group) => {
+          // Initialize headJsonExtParsed as null
+          let jsonExtParsed = null;
+
+          // Check if group.head and group.head.jsonExt exist
+          if (group && group.jsonExt) {
+            try {
+              // Parse the stringified JSON in group.head.jsonExt
+              jsonExtParsed = JSON.parse(group.jsonExt);
+            } catch (error) {
+              console.error('Error parsing group.head.jsonExt:', error);
+              // Handle parse error, e.g., log it or set to null
+              jsonExtParsed = null;
+            }
+          }
+
+          // Return the modified group object
+          return {
+            ...group,
+            id: decodeId(group.id),
+            jsonExt: jsonExtParsed // Replace stringified JSON with parsed object
+          };
+        }),
         groupsPageInfo: pageInfo(action.payload.data.group),
         groupsTotalCount: action.payload.data.group ? action.payload.data.group.totalCount : null,
         errorGroups: formatGraphQLError(action.payload),
