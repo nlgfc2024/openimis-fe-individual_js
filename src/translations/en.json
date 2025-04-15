@@ -23,6 +23,10 @@
     "dob": "Day of birth",
     "location": "Location",
     "locationEditDisabledTitle": "Individual belongs to a group; Please edit location on their group",
+    "jsonExt": {
+      "formNumber": "UBR Form No.",
+      "district": "District"
+    },
     "isDeleted": "Show Deleted",
     "hasNoLocation": "Missing Location",
     "addButtonTooltip": "Add Individual to Group",
@@ -165,6 +169,10 @@
     "noHeadSpecified": "head not specified",
     "individual.firstName": "Individual First Name",
     "individual.lastName": "Individual Last Name",
+    "jsonExt": {
+      "formNumber": "UBR Form No.",
+      "district": "District"
+    },
     "pageTitle": "Group {id}",
     "headPanelTitle": "General information",
     "mandatoryFieldsEmptyError": "* These fields are required",

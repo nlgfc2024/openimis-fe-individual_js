@@ -123,7 +123,8 @@ function GroupSearcher({
 
   const headers = () => {
     const headers = [
-      'group.code',
+      'group.jsonExt.district',
+      'group.jsonExt.formNumber',
       'group.head',
     ];
 
@@ -137,7 +138,8 @@ function GroupSearcher({
 
   const itemFormatters = () => {
     const formatters = [
-      (group) => group.code,
+      (group) => group.jsonExt.district,
+      (group) => group.jsonExt.form_number,
       (group) => (group?.head
         ? `${group?.head?.firstName} ${group?.head?.lastName}`
         : formatMessage(intl, 'group', 'noHeadSpecified')),
@@ -178,7 +180,8 @@ function GroupSearcher({
   const rowIdentifier = (group) => group.id;
 
   const sorts = () => [
-    ['id', false],
+    ['jsonExt_FormNumber', true],
+    ['jsonExt_District', true],
   ];
 
   const isRowDisabled = (_, group) => deletedGroupUuids.includes(group.id);

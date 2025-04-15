@@ -195,6 +195,8 @@ function IndividualSearcher({
 
   const headers = () => {
     const headers = [
+      'individual.jsonExt.district',
+      'individual.jsonExt.formNumber',
       'individual.firstName',
       'individual.lastName',
       'individual.dob',
@@ -213,6 +215,8 @@ function IndividualSearcher({
 
   const itemFormatters = () => {
     const formatters = [
+      (individual) => individual.jsonExt.district,
+      (individual) => individual.jsonExt.form_number,
       (individual) => individual.firstName,
       (individual) => individual.lastName,
       (individual) => (individual.dob ? formatDateFromISO(modulesManager, intl, individual.dob) : EMPTY_STRING),
@@ -263,6 +267,8 @@ function IndividualSearcher({
   const rowIdentifier = (individual) => individual.id;
 
   const sorts = () => [
+    ['jsonExt_District', true],
+    ['jsonExt_FormNumber', true],
     ['firstName', true],
     ['lastName', true],
     ['dob', true],
