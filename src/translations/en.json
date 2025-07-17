@@ -12,7 +12,7 @@
   },
   "menu": {
     "individuals": "Individuals",
-    "groups": "Groups",
+    "groups": "Households",
     "api": "Import Data - API"
   },
   "individual": {
@@ -22,10 +22,10 @@
     "lastName": "Last Name",
     "dob": "Day of birth",
     "location": "Location",
-    "locationEditDisabledTitle": "Individual belongs to a group; Please edit location on their group",
+    "locationEditDisabledTitle": "Individual belongs to a household; Please edit location on their household",
     "isDeleted": "Show Deleted",
     "hasNoLocation": "Missing Location",
-    "addButtonTooltip": "Add Individual to Group",
+    "addButtonTooltip": "Add Individual to Household",
     "additonalFields": {
         "label": "Additional Fields",
         "showAdditionalFields": "Show Additional Fields",
@@ -80,7 +80,7 @@
     "enrollment": {
       "buttonLabel": "ENROLLMENT",
       "title": "Enrollment of Individuals to the Programme",
-      "titleGroup": "Enrollment of Groups to the Programme",
+      "titleGroup": "Enrollment of Households to the Programme",
       "label": "Enroll Individuals to the program",
       "cancel": "Cancel",
       "summary": "Preview Summary of Enrollment",
@@ -98,16 +98,16 @@
       "numberOfIndividualsAssignedToSelectedProgramme": "Number Of Individuals Already Assigned to Selected Programme",
       "numberOfIndividualsToBeUploaded": "Number Of Individuals to be Uploaded",
       "confirmMessageDialog": "Are you sure you want to confirm the enrollment of the selected individuals into the {benefitPlanName} Programme?",
-      "confirmGroupMessageDialog": "Are you sure you want to confirm the enrollment of the selected groups into the {benefitPlanName} Programme?",
+      "confirmGroupMessageDialog": "Are you sure you want to confirm the enrollment of the selected households into the {benefitPlanName} Programme?",
       "previewIndividuals": "Preview Individuals",
-      "previewGroups": "Preview Groups",
+      "previewGroups": "Preview Households",
       "close": "Close",
-      "totalNumberOfGroups": "Total Number of Groups",
-      "numberOfSelectedGroups": "Number Of Selected Groups",
-      "numberOfGroupsAssignedToProgramme": "Number Of Groups Assigned to Programme",
-      "numberOfGroupsNotAssignedToProgramme": "Number Of Groups not Assigned To Programme",
-      "numberOfGroupsAssignedToSelectedProgramme": "Number of Groups Assigned to Selected Programme",
-      "numberOfGroupsToUpload": "Number of Groups to Upload"
+      "totalNumberOfGroups": "Total Number of Households",
+      "numberOfSelectedGroups": "Number Of Selected Households",
+      "numberOfGroupsAssignedToProgramme": "Number Of Households Assigned to Programme",
+      "numberOfGroupsNotAssignedToProgramme": "Number Of Households not Assigned To Programme",
+      "numberOfGroupsAssignedToSelectedProgramme": "Number of Households Assigned to Selected Programme",
+      "numberOfGroupsToUpload": "Number of Households to Upload"
 
     },
     "saveButton.tooltip.enabled": "Save changes",
@@ -124,7 +124,7 @@
     "individualTasks.label": "Tasks",
     "groupChange": {
       "confirm": {
-        "message": "Individual {individualId} moved to Group {groupId}"
+        "message": "Individual {individualId} moved to Household {groupId}"
       }
     },
     "gql_individual_search_perms": "Individual | Individual Search",
@@ -132,10 +132,10 @@
     "gql_individual_update_perms": "Individual | Individual Update",
     "gql_individual_delete_perms": "Individual | Individual Delete",
     "gql_individual_undo_delete_perms": "Individual | Individual Undo Delete",
-    "gql_group_search_perms": "Individual | Group Search",
-    "gql_group_create_perms": "Individual | Group Create",
-    "gql_group_update_perms": "Individual | Group Update",
-    "gql_group_delete_perms": "Individual | Group Delete"
+    "gql_group_search_perms": "Individual | Household Search",
+    "gql_group_create_perms": "Individual | Household Create",
+    "gql_group_update_perms": "Individual | Household Update",
+    "gql_group_delete_perms": "Individual | Household Delete"
   },
   "individualHistory": {
     "pageTitle": "Individual {firstName} {lastName}",
@@ -161,20 +161,20 @@
     "searcherResultsTitle": "{individualHistoryTotalCount} Historical Records Found"
   },
   "groups": {
-    "pageTitle": "Groups",
-    "searcherResultsTitle": "{groupsTotalCount} Groups Found"
+    "pageTitle": "Households",
+    "searcherResultsTitle": "{groupsTotalCount} Households Found"
   },
   "group": {
     "id": "ID",
     "head": "Head",
     "code": "Code",
     "create": {
-      "mutationLabel": "Created Group {id}"
+      "mutationLabel": "Created Household {id}"
     },
     "noHeadSpecified": "head not specified",
     "individual.firstName": "Individual First Name",
     "individual.lastName": "Individual Last Name",
-    "pageTitle": "Group {id}",
+    "pageTitle": "Household {id}",
     "headPanelTitle": "General information",
     "mandatoryFieldsEmptyError": "* These fields are required",
     "delete": {
@@ -182,20 +182,20 @@
         "title": "Delete {id}?",
         "message": "Deleting data does not mean erasing it from OpenIMIS database. The data will only be deactivated from the viewed list."
       },
-      "mutationLabel": "Delete Group {id}"
+      "mutationLabel": "Delete Household {id}"
     },
     "createGroupAndMoveIndividual": {
-      "mutationLabel": "Create group and move individual."
+      "mutationLabel": "Create household and move individual."
     },
     "tasks" : {
       "create": {
-        "title": "Group Create Tasks"
+        "title": "Household Create Tasks"
       }
     },
     "members": "Members"
   },
   "groupHistory": {
-    "pageTitle": "Group {id}",
+    "pageTitle": "Household {id}",
     "headPanelTitle": "General Information",
     "id": "ID",
     "head": "Head",
@@ -233,7 +233,7 @@
     "individual": {
       "role": "Role",
       "recipientType": "Recipient Type",
-      "groupId": "Group ID",
+      "groupId": "Household ID",
       "individualId": "Individual ID"
     },
     "update": {
@@ -242,7 +242,7 @@
     },
     "tasks": {
       "update": {
-        "title": "Group Update Tasks"
+        "title": "Household Update Tasks"
       }
     },
     "groupIndividualRolePicker.HEAD":  "HEAD",
@@ -267,10 +267,10 @@
   "groupIndividualHistory": {
     "individual": {
       "role": "Role",
-      "groupId": "Group ID",
+      "groupId": "Household ID",
       "individualId": "Individual ID"
     },
-    "label": "Group History",
+    "label": "Household History",
     "groupIndividualRolePicker.HEAD":  "HEAD",
     "groupIndividualRolePicker.RECIPIENT": "RECIPIENT",
     "groupIndividualRolePicker": "Role"
@@ -278,20 +278,20 @@
   "groupChangelog.label": "Change Log",
   "groupTasks.label": "Tasks",
   "groupPicker": {
-    "label": "Select a group."
+    "label": "Select a household."
   },
   "groupChangeDialog": {
-    "confirmTitle": "Move {firstName} {lastName} to a different group."
+    "confirmTitle": "Move {firstName} {lastName} to a different household."
   },
-  "addToNewGroup": "Add individual to this group",
+  "addToNewGroup": "Add individual to this household",
   "confirm": "Confirm",
   "cancel": "Cancel",
-  "changeGroupButtonTooltip": "Move to another group.",
-  "moveToNewGroup": "New Group",
-  "createGroupFromColumns": "Create groups from column:",
+  "changeGroupButtonTooltip": "Move to another household.",
+  "moveToNewGroup": "New Household",
+  "createGroupFromColumns": "Create households from column:",
   "groupAggregationInfo": "To specify recipients include header 'recipient_info' with possible values: '1' - head, '0' or empty - recipient.",
-  "validation_import_group_valid_items.tasks.title": "Import Group Valid Items",
-  "groupTaskConfirmation.title": "Group Upload Confirmation",
+  "validation_import_group_valid_items.tasks.title": "Import Household Valid Items",
+  "groupTaskConfirmation.title": "Household Upload Confirmation",
   "dialogActions.continue": "Continue",
   "dialogActions.goBack": "Cancel",
   "ImportPageAPI": {
