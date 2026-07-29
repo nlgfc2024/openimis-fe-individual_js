@@ -79,12 +79,13 @@ function AdvancedCriteriaForm({
   };
 
   useEffect(() => {
-    const defaultAppliedCustomFilters = getDefaultAppliedCustomFilters();
-    if (!defaultAppliedCustomFilters.length) {
-      setFilters(getBenefitPlanDefaultCriteria());
-    } else {
-      setFilters(defaultAppliedCustomFilters);
-    }
+    // Status-level default filters from the Phase are mandatory (locked): always shown and
+    // non-removable. Previously-applied user-added filters are appended and stay editable.
+    const defaults = getBenefitPlanDefaultCriteria().map((f) => ({ ...f, locked: true }));
+    const filterKey = (f) => `${f.field}__${f.filter}__${f.type}=${f.value}`;
+    const defaultKeys = new Set(defaults.map(filterKey));
+    const extras = getDefaultAppliedCustomFilters().filter((f) => !defaultKeys.has(filterKey(f)));
+    setFilters([...defaults, ...extras]);
   }, [edited]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
@@ -229,7 +230,7 @@ function AdvancedCriteriaForm({
           index={index}
           filters={filters}
           setFilters={setFilters}
-          readOnly={confirmed}
+          readOnly={confirmed || filter.locked}
         />
       ))}
       { !confirmed ? (
