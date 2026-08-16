@@ -91,7 +91,7 @@ const DEFAULT_CONFIG = {
     { path: `${ROUTE_GROUP}/:group_uuid?`, component: GroupPage },
     { path: ROUTE_API_IMPORTS, component: ImportDataApiPage },
   ],
-  'socialProtection.MainMenu': [
+  'openSearchReports.MainMenu': [
     {
       text: <FormattedMessage module={INDIVIDUAL_MODULE_NAME} id="menu.individuals" />,
       icon: <Person />,
@@ -106,6 +106,8 @@ const DEFAULT_CONFIG = {
       filter: (rights) => rights.includes(RIGHT_GROUP_SEARCH),
       id: 'individual.groups',
     },
+  ],
+  'socialProtection.MainMenu': [
     {
       text: <FormattedMessage module={INDIVIDUAL_MODULE_NAME} id="menu.api" />,
       icon: <MenuIcon />,
