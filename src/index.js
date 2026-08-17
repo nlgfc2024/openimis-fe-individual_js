@@ -80,6 +80,7 @@ const { BenefitPlansListTabLabel, BenefitPlansListTabPanel } = getBenefitPlansLi
 const DEFAULT_CONFIG = {
   translations: [{ key: 'en', messages: flatten(messages_en) }],
   reducers: [{ key: 'individual', reducer }],
+  'home.HomePage.customDashboard': GroupsPage,
   'core.Router': [
     { path: ROUTE_INDIVIDUALS, component: IndividualsPage },
     { path: ROUTE_GROUPS, component: GroupsPage },
