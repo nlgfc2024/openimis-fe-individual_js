@@ -10,6 +10,55 @@ export function isEmptyObject(obj) {
   return Object.keys(obj).length === 0;
 }
 
+export function safeParseJsonObject(value) {
+  if (value && typeof value === 'object' && !Array.isArray(value)) return value;
+  if (typeof value !== 'string' || !value.trim()) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+export function normalizeCriterion(criterion) {
+  if (!criterion || typeof criterion !== 'object') return null;
+  if (criterion.field && criterion.filter && criterion.type) return { ...criterion };
+  const condition = criterion.custom_filter_condition;
+  if (typeof condition !== 'string') return null;
+  const parts = condition.split('__');
+  if (parts.length !== 3 || !parts[2].includes('=')) return null;
+  const valueSeparator = parts[2].indexOf('=');
+  return {
+    ...criterion,
+    field: parts[0],
+    filter: parts[1],
+    type: parts[2].slice(0, valueSeparator),
+    value: parts[2].slice(valueSeparator + 1),
+  };
+}
+
+export function normalizeAdvancedCriteria(value) {
+  let criteria = value;
+  if (typeof criteria === 'string') {
+    try { criteria = JSON.parse(criteria); } catch (error) { return {}; }
+  }
+  if (Array.isArray(criteria)) criteria = { POTENTIAL: criteria };
+  if (!criteria || typeof criteria !== 'object') return {};
+  return Object.keys(criteria).reduce((result, status) => ({
+    ...result,
+    [status]: Array.isArray(criteria[status])
+      ? criteria[status].map(normalizeCriterion).filter(Boolean)
+      : [],
+  }), {});
+}
+
+export function toCustomFilterConditions(filters) {
+  return filters
+    .filter((filter) => !filter.locked && filter.field && filter.filter && filter.type)
+    .map((filter) => `${filter.field}__${filter.filter}__${filter.type}=${filter.value}`);
+}
+
 function downloadFile(url, filename) {
   fetch(url)
     .then((response) => response.blob())

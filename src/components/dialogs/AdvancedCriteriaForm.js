@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+/* eslint-disable camelcase */
 import React, { useEffect, useState } from 'react';
 import { injectIntl } from 'react-intl';
 import Button from '@material-ui/core/Button';
@@ -20,9 +21,10 @@ import AdvancedCriteriaRowValue from './AdvancedCriteriaRowValue';
 import {
   CLEARED_STATE_FILTER,
   INDIVIDUAL,
-  DEFAULT_BENEFICIARY_STATUS,
 } from '../../constants';
-import { isBase64Encoded, isEmptyObject } from '../../utils';
+import {
+  isBase64Encoded, isEmptyObject, normalizeAdvancedCriteria, safeParseJsonObject, toCustomFilterConditions,
+} from '../../utils';
 import { confirmEnrollment, fetchIndividualEnrollmentSummary } from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
 
@@ -55,6 +57,7 @@ function AdvancedCriteriaForm({
   coreConfirm,
   rights,
   edited,
+  enrollmentUi,
 }) {
   // eslint-disable-next-line no-unused-vars
   const [currentFilter, setCurrentFilter] = useState({
@@ -65,15 +68,10 @@ function AdvancedCriteriaForm({
   const status = edited?.status;
 
   const getBenefitPlanDefaultCriteria = () => {
-    const jsonExt = edited?.benefitPlan?.jsonExt ?? '{}';
-    const jsonData = JSON.parse(jsonExt);
-
-    // Note: advanced_criteria is migrated from [filters] to {status: filters}
-    // For backward compatibility default status take on the old filters
-    let criteria = jsonData?.advanced_criteria || {};
-    if (Array.isArray(criteria)) {
-      criteria = { [DEFAULT_BENEFICIARY_STATUS]: criteria };
-    }
+    const jsonData = safeParseJsonObject(edited?.benefitPlan?.jsonExt);
+    const criteria = normalizeAdvancedCriteria(
+      edited?.benefitPlan?.advancedCriteria ?? jsonData.advanced_criteria,
+    );
 
     return criteria[status] || [];
   };
@@ -86,7 +84,7 @@ function AdvancedCriteriaForm({
     const defaultKeys = new Set(defaults.map(filterKey));
     const extras = getDefaultAppliedCustomFilters().filter((f) => !defaultKeys.has(filterKey(f)));
     setFilters([...defaults, ...extras]);
-  }, [edited]);
+  }, [edited?.benefitPlan?.id, status]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
     const params = [
@@ -129,19 +127,15 @@ function AdvancedCriteriaForm({
 
   const handleRemoveFilter = () => {
     setCurrentFilter(CLEARED_STATE_FILTER);
-    setAppliedFiltersRowStructure([CLEARED_STATE_FILTER]);
-    setFilters([CLEARED_STATE_FILTER]);
+    const phaseCriteria = filters.filter((filter) => filter.locked);
+    setAppliedFiltersRowStructure(phaseCriteria);
+    setFilters(phaseCriteria);
   };
 
   const saveCriteria = () => {
     setAppliedFiltersRowStructure(filters);
-    const outputFilters = JSON.stringify(
-      filters.map(({
-        filter, value, field, type,
-      }) => ({
-        custom_filter_condition: `${field}__${filter}__${type}=${value}`,
-      })),
-    );
+    const operatorConditions = toCustomFilterConditions(filters);
+    const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
     const jsonExt = updateJsonExt(objectToSave.jsonExt, outputFilters);
     updateAttributes(jsonExt);
     setAppliedCustomFilters(outputFilters);
@@ -156,6 +150,7 @@ function AdvancedCriteriaForm({
     const params = [
       `customFilters: [${customFilters}]`,
       `benefitPlanId: "${decodeId(object.id)}"`,
+      `status: "${status}"`,
     ];
     fetchIndividualEnrollmentSummary(params);
     handleClose();
@@ -193,13 +188,8 @@ function AdvancedCriteriaForm({
 
   useEffect(() => {
     if (confirmed) {
-      const outputFilters = JSON.stringify(
-        filters.map(({
-          filter, value, field, type,
-        }) => ({
-          custom_filter_condition: `${field}__${filter}__${type}=${value}`,
-        })),
-      );
+      const operatorConditions = toCustomFilterConditions(filters);
+      const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
       const jsonExt = updateJsonExt(objectToSave.jsonExt, outputFilters);
       const jsonData = JSON.parse(jsonExt);
       const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
@@ -222,18 +212,29 @@ function AdvancedCriteriaForm({
 
   return (
     <>
-      {filters.map((filter, index) => (
+      {enrollmentUi.show_mandatory_criteria_summary && filters.filter((filter) => filter.locked).map((filter) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
           currentFilter={filter}
           setCurrentFilter={setCurrentFilter}
-          index={index}
+          index={filters.indexOf(filter)}
           filters={filters}
           setFilters={setFilters}
           readOnly={confirmed || filter.locked}
         />
       ))}
-      { !confirmed ? (
+      {enrollmentUi.show_advanced_operator_filters && filters.filter((filter) => !filter.locked).map((filter) => (
+        <AdvancedCriteriaRowValue
+          customFilters={customFilters}
+          currentFilter={filter}
+          setCurrentFilter={setCurrentFilter}
+          index={filters.indexOf(filter)}
+          filters={filters}
+          setFilters={setFilters}
+          readOnly={confirmed}
+        />
+      ))}
+      { enrollmentUi.show_advanced_operator_filters && !confirmed ? (
         <div
           style={{ backgroundColor: '#DFEDEF', paddingLeft: '10px', paddingBottom: '10px' }}
         >
@@ -263,6 +264,7 @@ function AdvancedCriteriaForm({
       // eslint-disable-next-line react/jsx-no-useless-fragment
       ) : (<></>) }
       <div>
+        {enrollmentUi.show_advanced_operator_filters && (
         <div style={{ float: 'left' }}>
           <Button
             onClick={handleRemoveFilter}
@@ -275,6 +277,7 @@ function AdvancedCriteriaForm({
             {formatMessage(intl, 'individual', 'individual.enrollment.clearAllFilters')}
           </Button>
         </div>
+        )}
         <div style={{
           float: 'right',
           paddingRight: '16px',
