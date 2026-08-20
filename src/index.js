@@ -197,7 +197,6 @@ const DEFAULT_CONFIG = {
 const DEFAULT_ENROLLMENT_UI = {
   show_mandatory_criteria_summary: true,
   show_advanced_operator_filters: true,
-  show_operational_location_filter: false,
 };
 
 export const IndividualModule = (cfg = {}) => ({
