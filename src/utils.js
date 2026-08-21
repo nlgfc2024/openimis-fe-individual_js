@@ -59,6 +59,25 @@ export function toCustomFilterConditions(filters) {
     .map((filter) => `${filter.field}__${filter.filter}__${filter.type}=${filter.value}`);
 }
 
+export function enrollmentOperatorConditions(filters, enabled = true) {
+  return enabled ? toCustomFilterConditions(filters) : [];
+}
+
+export function updateEnrollmentJsonExt(inputJsonExt, status, conditions) {
+  const existingData = safeParseJsonObject(inputJsonExt);
+  const advancedCriteria = normalizeAdvancedCriteria(existingData.advanced_criteria);
+  existingData.advanced_criteria = {
+    ...advancedCriteria,
+    // eslint-disable-next-line camelcase
+    [status]: conditions.map((custom_filter_condition) => ({ custom_filter_condition })),
+  };
+  return JSON.stringify(existingData);
+}
+
+export function toGraphQLStringLiterals(conditions) {
+  return conditions.map((condition) => JSON.stringify(condition));
+}
+
 function downloadFile(url, filename) {
   fetch(url)
     .then((response) => response.blob())
