@@ -24,6 +24,7 @@ import {
 } from '../../constants';
 import {
   enrollmentOperatorConditions,
+  createEnrollmentCriteriaState,
   isBase64Encoded,
   isEmptyObject,
   normalizeAdvancedCriteria,
@@ -52,7 +53,6 @@ function AdvancedCriteriaForm({
   appliedFiltersRowStructure,
   setAppliedFiltersRowStructure,
   updateAttributes,
-  getDefaultAppliedCustomFilters,
   additionalParams,
   fetchIndividualEnrollmentSummary,
   enrollmentSummary,
@@ -69,7 +69,8 @@ function AdvancedCriteriaForm({
   const [currentFilter, setCurrentFilter] = useState({
     field: '', filter: '', type: '', value: '', amount: '',
   });
-  const [filters, setFilters] = useState(getDefaultAppliedCustomFilters());
+  const [phaseCriteria, setPhaseCriteria] = useState([]);
+  const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
@@ -84,14 +85,24 @@ function AdvancedCriteriaForm({
     return criteria[status] || [];
   };
 
+  const getSavedOperatorFilters = () => {
+    const jsonData = safeParseJsonObject(objectToSave?.jsonExt);
+    return normalizeAdvancedCriteria(jsonData.advanced_criteria)[status] || [];
+  };
+
+  const filters = [...phaseCriteria, ...operatorFilters];
+  const updateOperatorFilters = (nextFilters) => {
+    const combinedFilters = typeof nextFilters === 'function' ? nextFilters(filters) : nextFilters;
+    setOperatorFilters(combinedFilters.filter((filter) => !filter.locked));
+  };
+
   useEffect(() => {
-    // Status-level default filters from the Phase are mandatory (locked): always shown and
-    // non-removable. Previously-applied user-added filters are appended and stay editable.
-    const defaults = getBenefitPlanDefaultCriteria().map((f) => ({ ...f, locked: true }));
-    const filterKey = (f) => `${f.field}__${f.filter}__${f.type}=${f.value}`;
-    const defaultKeys = new Set(defaults.map(filterKey));
-    const extras = getDefaultAppliedCustomFilters().filter((f) => !defaultKeys.has(filterKey(f)));
-    setFilters([...defaults, ...extras]);
+    const nextState = createEnrollmentCriteriaState(
+      getBenefitPlanDefaultCriteria(),
+      getSavedOperatorFilters(),
+    );
+    setPhaseCriteria(nextState.phaseCriteria);
+    setOperatorFilters(nextState.operatorFilters);
   }, [edited?.benefitPlan?.id, status]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
@@ -118,19 +129,18 @@ function AdvancedCriteriaForm({
 
   const handleAddFilter = () => {
     setCurrentFilter(CLEARED_STATE_FILTER);
-    setFilters([...filters, CLEARED_STATE_FILTER]);
+    setOperatorFilters([...operatorFilters, CLEARED_STATE_FILTER]);
   };
 
   const handleRemoveFilter = () => {
     setCurrentFilter(CLEARED_STATE_FILTER);
-    const phaseCriteria = filters.filter((filter) => filter.locked);
     setAppliedFiltersRowStructure(phaseCriteria);
-    setFilters(phaseCriteria);
+    setOperatorFilters([]);
   };
 
   const saveCriteria = () => {
     setAppliedFiltersRowStructure(filters);
-    const operatorConditions = enrollmentOperatorConditions(filters, showOperatorFilters);
+    const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
     const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
     const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
     updateAttributes(jsonExt);
@@ -184,7 +194,7 @@ function AdvancedCriteriaForm({
 
   useEffect(() => {
     if (confirmed) {
-      const operatorConditions = enrollmentOperatorConditions(filters, showOperatorFilters);
+      const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
       const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
       const jsonData = JSON.parse(jsonExt);
       const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
@@ -207,25 +217,25 @@ function AdvancedCriteriaForm({
 
   return (
     <>
-      {showMandatoryCriteria && filters.filter((filter) => filter.locked).map((filter) => (
+      {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
           currentFilter={filter}
           setCurrentFilter={setCurrentFilter}
-          index={filters.indexOf(filter)}
+          index={index}
           filters={filters}
-          setFilters={setFilters}
+          setFilters={updateOperatorFilters}
           readOnly={confirmed || filter.locked}
         />
       ))}
-      {showOperatorFilters && filters.filter((filter) => !filter.locked).map((filter) => (
+      {showOperatorFilters && operatorFilters.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
           currentFilter={filter}
           setCurrentFilter={setCurrentFilter}
-          index={filters.indexOf(filter)}
+          index={phaseCriteria.length + index}
           filters={filters}
-          setFilters={setFilters}
+          setFilters={updateOperatorFilters}
           readOnly={confirmed}
         />
       ))}

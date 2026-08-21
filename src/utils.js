@@ -63,6 +63,20 @@ export function enrollmentOperatorConditions(filters, enabled = true) {
   return enabled ? toCustomFilterConditions(filters) : [];
 }
 
+export function createEnrollmentCriteriaState(phaseCriteria = [], savedOperatorFilters = []) {
+  const lockedPhaseCriteria = phaseCriteria.map((criterion) => ({ ...criterion, locked: true }));
+  const phaseKeys = new Set(lockedPhaseCriteria.map(
+    (criterion) => `${criterion.field}__${criterion.filter}__${criterion.type}=${criterion.value}`,
+  ));
+  const operatorFilters = savedOperatorFilters
+    .filter((criterion) => !criterion.locked)
+    .filter((criterion) => !phaseKeys.has(
+      `${criterion.field}__${criterion.filter}__${criterion.type}=${criterion.value}`,
+    ))
+    .map((criterion) => ({ ...criterion, locked: false }));
+  return { phaseCriteria: lockedPhaseCriteria, operatorFilters };
+}
+
 export function updateEnrollmentJsonExt(inputJsonExt, status, conditions) {
   const existingData = safeParseJsonObject(inputJsonExt);
   const advancedCriteria = normalizeAdvancedCriteria(existingData.advanced_criteria);
