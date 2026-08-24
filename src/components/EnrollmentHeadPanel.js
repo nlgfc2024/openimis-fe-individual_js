@@ -15,6 +15,7 @@ import {
 } from '@openimis/fe-core';
 import AdvancedCriteriaForm from './dialogs/AdvancedCriteriaForm';
 import { CLEARED_STATE_FILTER } from '../constants';
+import { normalizeAdvancedCriteria, safeParseJsonObject } from '../utils';
 
 const styles = (theme) => ({
   tableTitle: theme.table.title,
@@ -41,21 +42,12 @@ class EnrollmentHeadPanel extends FormPanel {
 
   getDefaultAppliedCustomFilters = () => {
     const benefitPlan = this.props?.edited;
-    const jsonExt = benefitPlan?.jsonExt ?? '{}';
     const status = benefitPlan?.status;
-    const jsonData = JSON.parse(jsonExt);
-    const filters = jsonData.advanced_criteria?.[status] || [];
-    return filters.map(({ custom_filter_condition }) => {
-      const [field, filter, typeValue] = custom_filter_condition.split('__');
-      const [type, value] = typeValue.split('=');
-      return {
-        custom_filter_condition,
-        field,
-        filter,
-        type,
-        value,
-      };
-    });
+    const jsonData = safeParseJsonObject(benefitPlan?.benefitPlan?.jsonExt);
+    const criteria = normalizeAdvancedCriteria(
+      benefitPlan?.benefitPlan?.advancedCriteria ?? jsonData.advanced_criteria,
+    );
+    return criteria[status] || [];
   };
 
   setAppliedCustomFilters = (appliedCustomFilters) => {
@@ -115,6 +107,7 @@ class EnrollmentHeadPanel extends FormPanel {
                 getDefaultAppliedCustomFilters={this.getDefaultAppliedCustomFilters}
                 additionalParams={edited?.benefitPlan ? { benefitPlan: `${decodeId(edited.benefitPlan.id)}` } : null}
                 edited={edited}
+                enrollmentUi={this.props.modulesManager.getRef('individual.enrollmentUiConfig')}
               />
             </Grid>
           </>

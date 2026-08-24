@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+/* eslint-disable camelcase */
 import React, { useEffect, useState } from 'react';
 import { injectIntl } from 'react-intl';
 import Button from '@material-ui/core/Button';
@@ -20,9 +21,17 @@ import AdvancedCriteriaRowValue from './AdvancedCriteriaRowValue';
 import {
   CLEARED_STATE_FILTER,
   INDIVIDUAL,
-  DEFAULT_BENEFICIARY_STATUS,
 } from '../../constants';
-import { isBase64Encoded, isEmptyObject } from '../../utils';
+import {
+  enrollmentOperatorConditions,
+  createEnrollmentCriteriaState,
+  isBase64Encoded,
+  isEmptyObject,
+  normalizeAdvancedCriteria,
+  safeParseJsonObject,
+  toGraphQLStringLiterals,
+  updateEnrollmentJsonExt,
+} from '../../utils';
 import { confirmEnrollment, fetchIndividualEnrollmentSummary } from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
 
@@ -44,7 +53,6 @@ function AdvancedCriteriaForm({
   appliedFiltersRowStructure,
   setAppliedFiltersRowStructure,
   updateAttributes,
-  getDefaultAppliedCustomFilters,
   additionalParams,
   fetchIndividualEnrollmentSummary,
   enrollmentSummary,
@@ -55,38 +63,47 @@ function AdvancedCriteriaForm({
   coreConfirm,
   rights,
   edited,
+  enrollmentUi,
 }) {
   // eslint-disable-next-line no-unused-vars
   const [currentFilter, setCurrentFilter] = useState({
     field: '', filter: '', type: '', value: '', amount: '',
   });
-  const [filters, setFilters] = useState(getDefaultAppliedCustomFilters());
+  const [phaseCriteria, setPhaseCriteria] = useState([]);
+  const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
   const status = edited?.status;
+  const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
+  const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
 
   const getBenefitPlanDefaultCriteria = () => {
-    const jsonExt = edited?.benefitPlan?.jsonExt ?? '{}';
-    const jsonData = JSON.parse(jsonExt);
-
-    // Note: advanced_criteria is migrated from [filters] to {status: filters}
-    // For backward compatibility default status take on the old filters
-    let criteria = jsonData?.advanced_criteria || {};
-    if (Array.isArray(criteria)) {
-      criteria = { [DEFAULT_BENEFICIARY_STATUS]: criteria };
-    }
+    const jsonData = safeParseJsonObject(edited?.benefitPlan?.jsonExt);
+    const criteria = normalizeAdvancedCriteria(
+      edited?.benefitPlan?.advancedCriteria ?? jsonData.advanced_criteria,
+    );
 
     return criteria[status] || [];
   };
 
+  const getSavedOperatorFilters = () => {
+    const jsonData = safeParseJsonObject(objectToSave?.jsonExt);
+    return normalizeAdvancedCriteria(jsonData.advanced_criteria)[status] || [];
+  };
+
+  const filters = [...phaseCriteria, ...operatorFilters];
+  const updateOperatorFilters = (nextFilters) => {
+    const combinedFilters = typeof nextFilters === 'function' ? nextFilters(filters) : nextFilters;
+    setOperatorFilters(combinedFilters.filter((filter) => !filter.locked));
+  };
+
   useEffect(() => {
-    // Status-level default filters from the Phase are mandatory (locked): always shown and
-    // non-removable. Previously-applied user-added filters are appended and stay editable.
-    const defaults = getBenefitPlanDefaultCriteria().map((f) => ({ ...f, locked: true }));
-    const filterKey = (f) => `${f.field}__${f.filter}__${f.type}=${f.value}`;
-    const defaultKeys = new Set(defaults.map(filterKey));
-    const extras = getDefaultAppliedCustomFilters().filter((f) => !defaultKeys.has(filterKey(f)));
-    setFilters([...defaults, ...extras]);
-  }, [edited]);
+    const nextState = createEnrollmentCriteriaState(
+      getBenefitPlanDefaultCriteria(),
+      getSavedOperatorFilters(),
+    );
+    setPhaseCriteria(nextState.phaseCriteria);
+    setOperatorFilters(nextState.operatorFilters);
+  }, [edited?.benefitPlan?.id, status]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
     const params = [
@@ -112,37 +129,20 @@ function AdvancedCriteriaForm({
 
   const handleAddFilter = () => {
     setCurrentFilter(CLEARED_STATE_FILTER);
-    setFilters([...filters, CLEARED_STATE_FILTER]);
+    setOperatorFilters([...operatorFilters, CLEARED_STATE_FILTER]);
   };
-
-  function updateJsonExt(inputJsonExt, outputFilters) {
-    const existingData = JSON.parse(inputJsonExt || '{}');
-    const filterData = JSON.parse(outputFilters);
-
-    const advancedCriteria = existingData?.advanced_criteria || {};
-    const updatedAdvancedCriteria = { ...advancedCriteria, [status]: filterData };
-    existingData.advanced_criteria = updatedAdvancedCriteria;
-
-    const updatedJsonExt = JSON.stringify(existingData);
-    return updatedJsonExt;
-  }
 
   const handleRemoveFilter = () => {
     setCurrentFilter(CLEARED_STATE_FILTER);
-    setAppliedFiltersRowStructure([CLEARED_STATE_FILTER]);
-    setFilters([CLEARED_STATE_FILTER]);
+    setAppliedFiltersRowStructure(phaseCriteria);
+    setOperatorFilters([]);
   };
 
   const saveCriteria = () => {
     setAppliedFiltersRowStructure(filters);
-    const outputFilters = JSON.stringify(
-      filters.map(({
-        filter, value, field, type,
-      }) => ({
-        custom_filter_condition: `${field}__${filter}__${type}=${value}`,
-      })),
-    );
-    const jsonExt = updateJsonExt(objectToSave.jsonExt, outputFilters);
+    const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
+    const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
+    const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
     updateAttributes(jsonExt);
     setAppliedCustomFilters(outputFilters);
 
@@ -151,11 +151,12 @@ function AdvancedCriteriaForm({
     const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
     // Extract custom_filter_condition values and construct customFilters array
-    const customFilters = advancedCriteria.map((criterion) => `"${criterion.custom_filter_condition}"`);
+    const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
     setFiltersToApply(customFilters);
     const params = [
       `customFilters: [${customFilters}]`,
       `benefitPlanId: "${decodeId(object.id)}"`,
+      `status: "${status}"`,
     ];
     fetchIndividualEnrollmentSummary(params);
     handleClose();
@@ -193,19 +194,13 @@ function AdvancedCriteriaForm({
 
   useEffect(() => {
     if (confirmed) {
-      const outputFilters = JSON.stringify(
-        filters.map(({
-          filter, value, field, type,
-        }) => ({
-          custom_filter_condition: `${field}__${filter}__${type}=${value}`,
-        })),
-      );
-      const jsonExt = updateJsonExt(objectToSave.jsonExt, outputFilters);
+      const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
+      const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
       const jsonData = JSON.parse(jsonExt);
       const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
       // Extract custom_filter_condition values and construct customFilters array
-      const customFilters = advancedCriteria.map((criterion) => `"${criterion.custom_filter_condition}"`);
+      const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
       setFiltersToApply(customFilters);
       const params = {
         customFilters: `[${customFilters}]`,
@@ -222,18 +217,29 @@ function AdvancedCriteriaForm({
 
   return (
     <>
-      {filters.map((filter, index) => (
+      {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
           currentFilter={filter}
           setCurrentFilter={setCurrentFilter}
           index={index}
           filters={filters}
-          setFilters={setFilters}
+          setFilters={updateOperatorFilters}
           readOnly={confirmed || filter.locked}
         />
       ))}
-      { !confirmed ? (
+      {showOperatorFilters && operatorFilters.map((filter, index) => (
+        <AdvancedCriteriaRowValue
+          customFilters={customFilters}
+          currentFilter={filter}
+          setCurrentFilter={setCurrentFilter}
+          index={phaseCriteria.length + index}
+          filters={filters}
+          setFilters={updateOperatorFilters}
+          readOnly={confirmed}
+        />
+      ))}
+      { showOperatorFilters && !confirmed ? (
         <div
           style={{ backgroundColor: '#DFEDEF', paddingLeft: '10px', paddingBottom: '10px' }}
         >
@@ -263,6 +269,7 @@ function AdvancedCriteriaForm({
       // eslint-disable-next-line react/jsx-no-useless-fragment
       ) : (<></>) }
       <div>
+        {showOperatorFilters && (
         <div style={{ float: 'left' }}>
           <Button
             onClick={handleRemoveFilter}
@@ -275,6 +282,7 @@ function AdvancedCriteriaForm({
             {formatMessage(intl, 'individual', 'individual.enrollment.clearAllFilters')}
           </Button>
         </div>
+        )}
         <div style={{
           float: 'right',
           paddingRight: '16px',

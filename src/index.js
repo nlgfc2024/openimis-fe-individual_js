@@ -194,4 +194,19 @@ const DEFAULT_CONFIG = {
   ],
 };
 
-export const IndividualModule = (cfg) => ({ ...DEFAULT_CONFIG, ...cfg });
+const DEFAULT_ENROLLMENT_UI = {
+  show_mandatory_criteria_summary: true,
+  show_advanced_operator_filters: true,
+};
+
+export const IndividualModule = (cfg = {}) => ({
+  ...DEFAULT_CONFIG,
+  ...cfg,
+  refs: [
+    ...DEFAULT_CONFIG.refs,
+    {
+      key: 'individual.enrollmentUiConfig',
+      ref: { ...DEFAULT_ENROLLMENT_UI, ...(cfg.enrollment_ui || {}) },
+    },
+  ],
+});
