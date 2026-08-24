@@ -12,6 +12,8 @@ const {
   toCustomFilterConditions,
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
+  enrollmentCandidateFilter,
+  parseEnrollmentRanking,
 } = loadEsModule(path.join(__dirname, '../src/utils.js'), {
   '@openimis/fe-core': { baseApiUrl: '/api' },
 });
@@ -156,4 +158,19 @@ test('normalization supports legacy two-part criteria with exact as default', ()
     type: 'string',
     value: 'Karonga',
   });
+});
+
+test('ranking metadata parses object and serialized GraphQL representations', () => {
+  const ranking = { order_by: ['-dob'], limit: { percentage: 20 } };
+  assert.deepEqual(parseEnrollmentRanking(ranking), ranking);
+  assert.deepEqual(parseEnrollmentRanking(JSON.stringify(ranking)), ranking);
+  assert.equal(parseEnrollmentRanking('{invalid'), null);
+});
+
+test('authoritative enrollment candidate filters preserve capped cohort order', () => {
+  assert.equal(
+    enrollmentCandidateFilter(['ranked-2', 'ranked-1']),
+    'enrollmentCandidateIds: ["ranked-2","ranked-1"]',
+  );
+  assert.equal(enrollmentCandidateFilter(undefined), null);
 });

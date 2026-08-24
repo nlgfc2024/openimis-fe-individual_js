@@ -77,6 +77,7 @@ function IndividualPreviewEnrollmentDialog({
               isModalEnrollment
               advancedCriteria={advancedCriteria}
               benefitPlanToEnroll={benefitPlanToEnroll}
+              enrollmentCandidateIds={enrollmentSummary?.selectedIds}
             />
           </div>
         </DialogContent>

@@ -34,6 +34,7 @@ import {
   INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY,
 } from '../constants';
 import GroupFilter from './GroupFilter';
+import { enrollmentCandidateFilter } from '../utils';
 import {
   applyNumberCircle,
   LOC_LEVELS,
@@ -67,6 +68,7 @@ function GroupSearcher({
   CLEARED_STATE_FILTER,
   benefitPlanToEnroll,
   advancedCriteria,
+  enrollmentCandidateIds,
 }) {
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [deletedGroupUuids, setDeletedGroupUuids] = useState([]);
@@ -177,9 +179,9 @@ function GroupSearcher({
 
   const rowIdentifier = (group) => group.id;
 
-  const sorts = () => [
+  const sorts = () => (isModalEnrollment ? [] : [
     ['id', false],
-  ];
+  ]);
 
   const isRowDisabled = (_, group) => deletedGroupUuids.includes(group.id);
 
@@ -199,6 +201,12 @@ function GroupSearcher({
         value: benefitPlanToEnroll,
         filter: `benefitPlanToEnroll: "${decodeId(benefitPlanToEnroll)}"`,
       };
+      if (Array.isArray(enrollmentCandidateIds)) {
+        filters.enrollmentCandidateIds = {
+          value: enrollmentCandidateIds,
+          filter: enrollmentCandidateFilter(enrollmentCandidateIds),
+        };
+      }
     }
     return filters;
   };
@@ -248,7 +256,7 @@ function GroupSearcher({
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy="id"
+        defaultOrderBy={isModalEnrollment ? undefined : 'id'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}

@@ -47,6 +47,7 @@ import {
   INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY,
 } from '../constants';
 import IndividualFilter from './IndividualFilter';
+import { enrollmentCandidateFilter } from '../utils';
 import {
   applyNumberCircle,
   LOC_LEVELS,
@@ -82,6 +83,7 @@ function IndividualSearcher({
   fetchedFieldsFromBfSchema,
   isModalEnrollment,
   advancedCriteria,
+  enrollmentCandidateIds,
   benefitPlanToEnroll,
   undoDeleteIndividual,
 }) {
@@ -262,11 +264,11 @@ function IndividualSearcher({
 
   const rowIdentifier = (individual) => individual.id;
 
-  const sorts = () => [
+  const sorts = () => (isModalEnrollment ? [] : [
     ['firstName', true],
     ['lastName', true],
     ['dob', true],
-  ];
+  ]);
 
   const isRowDisabled = (_, individual) => deletedIndividualUuids.includes(individual.id)
       || undoIndividualUuids.includes(individual.id);
@@ -314,6 +316,12 @@ function IndividualSearcher({
         value: true,
         filter: 'filterNotAttachedToGroup: true',
       };
+      if (Array.isArray(enrollmentCandidateIds)) {
+        filters.enrollmentCandidateIds = {
+          value: enrollmentCandidateIds,
+          filter: enrollmentCandidateFilter(enrollmentCandidateIds),
+        };
+      }
     }
     return filters;
   };
@@ -341,7 +349,7 @@ function IndividualSearcher({
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy="lastName"
+        defaultOrderBy={isModalEnrollment ? undefined : 'lastName'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
