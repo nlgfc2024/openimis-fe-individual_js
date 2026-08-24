@@ -26,15 +26,30 @@ export function normalizeCriterion(criterion) {
   if (criterion.field && criterion.filter && criterion.type) return { ...criterion };
   const condition = criterion.custom_filter_condition;
   if (typeof condition !== 'string') return null;
-  const parts = condition.split('__');
-  if (parts.length !== 3 || !parts[2].includes('=')) return null;
-  const valueSeparator = parts[2].indexOf('=');
+  const valueSeparator = condition.indexOf('=');
+  if (valueSeparator < 0) return null;
+  const expression = condition.slice(0, valueSeparator);
+  const parts = expression.split('__');
+  if (parts.length < 2) return null;
+  const type = parts.pop();
+  const filter = parts.length > 1 ? parts.pop() : 'exact';
+  const field = parts.join('__');
+  if (!field || !filter || !type) return null;
+  let value = condition.slice(valueSeparator + 1);
+  if (type === 'string' && value.startsWith('"')) {
+    try {
+      const decoded = JSON.parse(value);
+      if (typeof decoded === 'string') value = decoded;
+    } catch (error) {
+      // Preserve legacy or malformed values for validation instead of dropping them.
+    }
+  }
   return {
     ...criterion,
-    field: parts[0],
-    filter: parts[1],
-    type: parts[2].slice(0, valueSeparator),
-    value: parts[2].slice(valueSeparator + 1),
+    field,
+    filter,
+    type,
+    value,
   };
 }
 

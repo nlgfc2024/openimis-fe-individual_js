@@ -7,6 +7,7 @@ const {
   createEnrollmentCriteriaState,
   enrollmentOperatorConditions,
   normalizeAdvancedCriteria,
+  normalizeCriterion,
   safeParseJsonObject,
   toCustomFilterConditions,
   toGraphQLStringLiterals,
@@ -113,4 +114,46 @@ test('operator non-string values remain unquoted', () => {
     type: 'integer',
     value: 5,
   }]), ['household_size__gte__integer=5']);
+});
+
+test('operator string serialization is idempotent across reloads', () => {
+  let criterion = {
+    field: 'district', filter: 'exact', type: 'string', value: 'Karonga',
+  };
+  const expected = 'district__exact__string="Karonga"';
+  for (let generation = 0; generation < 3; generation += 1) {
+    const condition = toCustomFilterConditions([criterion])[0];
+    assert.equal(condition, expected);
+    criterion = normalizeCriterion({ custom_filter_condition: condition });
+  }
+});
+
+test('operator strings with embedded quotes round-trip without adding layers', () => {
+  const original = {
+    field: 'district', filter: 'exact', type: 'string', value: 'Nkhata "Bay"',
+  };
+  const condition = toCustomFilterConditions([original])[0];
+  const reloaded = normalizeCriterion({ custom_filter_condition: condition });
+  assert.equal(reloaded.value, original.value);
+  assert.equal(toCustomFilterConditions([reloaded])[0], condition);
+});
+
+test('normalization preserves legacy unquoted strings', () => {
+  const result = normalizeCriterion({
+    custom_filter_condition: 'district__exact__string=Karonga',
+  });
+  assert.equal(result.value, 'Karonga');
+});
+
+test('normalization supports legacy two-part criteria with exact as default', () => {
+  const result = normalizeCriterion({
+    custom_filter_condition: 'district__string="Karonga"',
+  });
+  assert.deepEqual(result, {
+    custom_filter_condition: 'district__string="Karonga"',
+    field: 'district',
+    filter: 'exact',
+    type: 'string',
+    value: 'Karonga',
+  });
 });
