@@ -8,6 +8,7 @@ const {
   enrollmentOperatorConditions,
   normalizeAdvancedCriteria,
   safeParseJsonObject,
+  toCustomFilterConditions,
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
 } = loadEsModule(path.join(__dirname, '../src/utils.js'), {
@@ -94,4 +95,22 @@ test('GraphQL string literals escape operator values safely', () => {
   assert.deepEqual(toGraphQLStringLiterals(['name__exact__string=A"B']), [
     '"name__exact__string=A\\"B"',
   ]);
+});
+
+test('operator string values are quoted and escaped for backend casting', () => {
+  assert.deepEqual(toCustomFilterConditions([{
+    field: 'district',
+    filter: 'exact',
+    type: 'string',
+    value: 'Nkhata "Bay"',
+  }]), [String.raw`district__exact__string="Nkhata \"Bay\""`]);
+});
+
+test('operator non-string values remain unquoted', () => {
+  assert.deepEqual(toCustomFilterConditions([{
+    field: 'household_size',
+    filter: 'gte',
+    type: 'integer',
+    value: 5,
+  }]), ['household_size__gte__integer=5']);
 });

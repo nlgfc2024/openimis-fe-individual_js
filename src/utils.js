@@ -56,7 +56,12 @@ export function normalizeAdvancedCriteria(value) {
 export function toCustomFilterConditions(filters) {
   return filters
     .filter((filter) => !filter.locked && filter.field && filter.filter && filter.type)
-    .map((filter) => `${filter.field}__${filter.filter}__${filter.type}=${filter.value}`);
+    .map((filter) => {
+      const value = filter.type === 'string'
+        ? JSON.stringify(String(filter.value ?? ''))
+        : filter.value;
+      return `${filter.field}__${filter.filter}__${filter.type}=${value}`;
+    });
 }
 
 export function enrollmentOperatorConditions(filters, enabled = true) {
