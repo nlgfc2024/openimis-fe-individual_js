@@ -34,6 +34,7 @@ import {
 } from '../../utils';
 import { confirmGroupEnrollment, fetchGroupEnrollmentSummary } from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
+import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -306,6 +307,7 @@ function AdvancedCriteriaGroupForm({
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
         </div>
         <Divider />
+        <EnrollmentRankingSummary intl={intl} summary={enrollmentGroupSummary} />
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Paper elevation={3} style={{ padding: '20px' }}>

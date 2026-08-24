@@ -29,6 +29,10 @@ const ENROLLMENT_SUMMARY_FULL_PROJECTION = () => [
   'numberOfIndividualsNotAssignedToProgramme',
   'numberOfIndividualsAssignedToSelectedProgramme',
   'numberOfIndividualsToUpload',
+  'poolSize',
+  'capApplied',
+  'willEnrol',
+  'enrolmentRanking',
 ];
 
 const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
@@ -38,6 +42,10 @@ const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
   'numberOfGroupsNotAssignedToProgramme',
   'numberOfGroupsAssignedToSelectedProgramme',
   'numberOfGroupsToUpload',
+  'poolSize',
+  'capApplied',
+  'willEnrol',
+  'enrolmentRanking',
 ];
 
 export function fetchWorkflows() {
