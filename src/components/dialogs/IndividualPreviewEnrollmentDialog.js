@@ -20,6 +20,7 @@ function IndividualPreviewEnrollmentDialog({
   advancedCriteria,
   benefitPlanToEnroll,
   enrollmentSummary,
+  status,
   confirmed,
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +78,7 @@ function IndividualPreviewEnrollmentDialog({
               isModalEnrollment
               advancedCriteria={advancedCriteria}
               benefitPlanToEnroll={benefitPlanToEnroll}
-              enrollmentCandidateIds={enrollmentSummary?.selectedIds}
+              enrollmentPreviewStatus={status}
             />
           </div>
         </DialogContent>

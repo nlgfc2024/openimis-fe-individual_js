@@ -34,7 +34,6 @@ const ENROLLMENT_SUMMARY_FULL_PROJECTION = () => [
   'willEnrol',
   'enrolmentRanking',
   'percentage',
-  'selectedIds',
 ];
 
 const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
@@ -49,7 +48,6 @@ const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
   'willEnrol',
   'enrolmentRanking',
   'percentage',
-  'selectedIds',
 ];
 
 export function fetchWorkflows() {

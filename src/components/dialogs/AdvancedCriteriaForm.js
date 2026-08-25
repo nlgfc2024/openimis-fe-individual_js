@@ -390,6 +390,7 @@ function AdvancedCriteriaForm({
               advancedCriteria={filtersToApply}
               benefitPlanToEnroll={object.id}
               enrollmentSummary={enrollmentSummary}
+              status={status}
               confirmed={confirmed}
             />
           </Grid>

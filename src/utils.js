@@ -122,12 +122,6 @@ export function parseEnrollmentRanking(ranking) {
   }
 }
 
-export function enrollmentCandidateFilter(candidateIds) {
-  return Array.isArray(candidateIds)
-    ? `enrollmentCandidateIds: ${JSON.stringify(candidateIds)}`
-    : null;
-}
-
 function downloadFile(url, filename) {
   fetch(url)
     .then((response) => response.blob())

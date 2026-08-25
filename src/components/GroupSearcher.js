@@ -34,7 +34,6 @@ import {
   INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY,
 } from '../constants';
 import GroupFilter from './GroupFilter';
-import { enrollmentCandidateFilter } from '../utils';
 import {
   applyNumberCircle,
   LOC_LEVELS,
@@ -68,7 +67,7 @@ function GroupSearcher({
   CLEARED_STATE_FILTER,
   benefitPlanToEnroll,
   advancedCriteria,
-  enrollmentCandidateIds,
+  enrollmentPreviewStatus,
 }) {
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [deletedGroupUuids, setDeletedGroupUuids] = useState([]);
@@ -201,10 +200,10 @@ function GroupSearcher({
         value: benefitPlanToEnroll,
         filter: `benefitPlanToEnroll: "${decodeId(benefitPlanToEnroll)}"`,
       };
-      if (Array.isArray(enrollmentCandidateIds)) {
-        filters.enrollmentCandidateIds = {
-          value: enrollmentCandidateIds,
-          filter: enrollmentCandidateFilter(enrollmentCandidateIds),
+      if (enrollmentPreviewStatus) {
+        filters.enrollmentPreviewStatus = {
+          value: enrollmentPreviewStatus,
+          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
         };
       }
     }

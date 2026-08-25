@@ -47,7 +47,6 @@ import {
   INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY,
 } from '../constants';
 import IndividualFilter from './IndividualFilter';
-import { enrollmentCandidateFilter } from '../utils';
 import {
   applyNumberCircle,
   LOC_LEVELS,
@@ -83,7 +82,7 @@ function IndividualSearcher({
   fetchedFieldsFromBfSchema,
   isModalEnrollment,
   advancedCriteria,
-  enrollmentCandidateIds,
+  enrollmentPreviewStatus,
   benefitPlanToEnroll,
   undoDeleteIndividual,
 }) {
@@ -316,10 +315,10 @@ function IndividualSearcher({
         value: true,
         filter: 'filterNotAttachedToGroup: true',
       };
-      if (Array.isArray(enrollmentCandidateIds)) {
-        filters.enrollmentCandidateIds = {
-          value: enrollmentCandidateIds,
-          filter: enrollmentCandidateFilter(enrollmentCandidateIds),
+      if (enrollmentPreviewStatus) {
+        filters.enrollmentPreviewStatus = {
+          value: enrollmentPreviewStatus,
+          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
         };
       }
     }
