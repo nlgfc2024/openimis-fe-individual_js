@@ -177,6 +177,7 @@ function AdvancedCriteriaGroupForm({
         paramsToFetchFilters = createParams(
           moduleName,
           objectType,
+          null,
           additionalParams,
         );
       }
