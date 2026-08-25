@@ -67,6 +67,7 @@ function GroupSearcher({
   CLEARED_STATE_FILTER,
   benefitPlanToEnroll,
   advancedCriteria,
+  enrollmentPreviewStatus,
 }) {
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [deletedGroupUuids, setDeletedGroupUuids] = useState([]);
@@ -177,9 +178,10 @@ function GroupSearcher({
 
   const rowIdentifier = (group) => group.id;
 
-  const sorts = () => [
+  // Enrollment previews preserve the backend's deterministic ranking order.
+  const sorts = () => (isModalEnrollment ? [] : [
     ['id', false],
-  ];
+  ]);
 
   const isRowDisabled = (_, group) => deletedGroupUuids.includes(group.id);
 
@@ -199,6 +201,12 @@ function GroupSearcher({
         value: benefitPlanToEnroll,
         filter: `benefitPlanToEnroll: "${decodeId(benefitPlanToEnroll)}"`,
       };
+      if (enrollmentPreviewStatus) {
+        filters.enrollmentPreviewStatus = {
+          value: enrollmentPreviewStatus,
+          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
+        };
+      }
     }
     return filters;
   };
@@ -248,7 +256,7 @@ function GroupSearcher({
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy="id"
+        defaultOrderBy={isModalEnrollment ? undefined : 'id'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}

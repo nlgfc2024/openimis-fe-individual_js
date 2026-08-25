@@ -12,6 +12,7 @@ const {
   toCustomFilterConditions,
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
+  parseEnrollmentRanking,
 } = loadEsModule(path.join(__dirname, '../src/utils.js'), {
   '@openimis/fe-core': { baseApiUrl: '/api' },
 });
@@ -156,4 +157,11 @@ test('normalization supports legacy two-part criteria with exact as default', ()
     type: 'string',
     value: 'Karonga',
   });
+});
+
+test('ranking metadata parses object and serialized GraphQL representations', () => {
+  const ranking = { order_by: ['-dob'], limit: { percentage: 20 } };
+  assert.deepEqual(parseEnrollmentRanking(ranking), ranking);
+  assert.deepEqual(parseEnrollmentRanking(JSON.stringify(ranking)), ranking);
+  assert.equal(parseEnrollmentRanking('{invalid'), null);
 });

@@ -82,6 +82,7 @@ function IndividualSearcher({
   fetchedFieldsFromBfSchema,
   isModalEnrollment,
   advancedCriteria,
+  enrollmentPreviewStatus,
   benefitPlanToEnroll,
   undoDeleteIndividual,
 }) {
@@ -262,11 +263,12 @@ function IndividualSearcher({
 
   const rowIdentifier = (individual) => individual.id;
 
-  const sorts = () => [
+  // Enrollment previews preserve the backend's deterministic ranking order.
+  const sorts = () => (isModalEnrollment ? [] : [
     ['firstName', true],
     ['lastName', true],
     ['dob', true],
-  ];
+  ]);
 
   const isRowDisabled = (_, individual) => deletedIndividualUuids.includes(individual.id)
       || undoIndividualUuids.includes(individual.id);
@@ -314,6 +316,12 @@ function IndividualSearcher({
         value: true,
         filter: 'filterNotAttachedToGroup: true',
       };
+      if (enrollmentPreviewStatus) {
+        filters.enrollmentPreviewStatus = {
+          value: enrollmentPreviewStatus,
+          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
+        };
+      }
     }
     return filters;
   };
@@ -341,7 +349,7 @@ function IndividualSearcher({
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy="lastName"
+        defaultOrderBy={isModalEnrollment ? undefined : 'lastName'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}

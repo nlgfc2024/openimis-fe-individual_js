@@ -34,6 +34,7 @@ import {
 } from '../../utils';
 import { confirmEnrollment, fetchIndividualEnrollmentSummary } from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
+import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -306,6 +307,7 @@ function AdvancedCriteriaForm({
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
         </div>
         <Divider />
+        <EnrollmentRankingSummary intl={intl} summary={enrollmentSummary} />
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Paper elevation={3} style={{ padding: '20px' }}>
@@ -388,6 +390,7 @@ function AdvancedCriteriaForm({
               advancedCriteria={filtersToApply}
               benefitPlanToEnroll={object.id}
               enrollmentSummary={enrollmentSummary}
+              status={status}
               confirmed={confirmed}
             />
           </Grid>

@@ -20,6 +20,7 @@ function GroupPreviewEnrollmentDialog({
   advancedCriteria,
   benefitPlanToEnroll,
   enrollmentSummary,
+  status,
   confirmed,
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +44,7 @@ function GroupPreviewEnrollmentDialog({
         color="primary"
         className={classes.button}
         style={{ marginLeft: '16px' }}
-        disabled={enrollmentSummary?.numberOfIndividualsToUpload === '0' || confirmed}
+        disabled={enrollmentSummary?.numberOfGroupsToUpload === '0' || confirmed}
       >
         {formatMessage('individual.enrollment.previewGroups')}
       </Button>
@@ -77,6 +78,7 @@ function GroupPreviewEnrollmentDialog({
               isModalEnrollment
               advancedCriteria={advancedCriteria}
               benefitPlanToEnroll={benefitPlanToEnroll}
+              enrollmentPreviewStatus={status}
             />
           </div>
         </DialogContent>

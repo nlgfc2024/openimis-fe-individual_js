@@ -112,6 +112,16 @@ export function toGraphQLStringLiterals(conditions) {
   return conditions.map((condition) => JSON.stringify(condition));
 }
 
+export function parseEnrollmentRanking(ranking) {
+  if (!ranking) return null;
+  if (typeof ranking === 'object') return ranking;
+  try {
+    return JSON.parse(ranking);
+  } catch (error) {
+    return null;
+  }
+}
+
 function downloadFile(url, filename) {
   fetch(url)
     .then((response) => response.blob())
