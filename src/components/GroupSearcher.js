@@ -178,6 +178,7 @@ function GroupSearcher({
 
   const rowIdentifier = (group) => group.id;
 
+  // Enrollment previews preserve the backend's deterministic ranking order.
   const sorts = () => (isModalEnrollment ? [] : [
     ['id', false],
   ]);

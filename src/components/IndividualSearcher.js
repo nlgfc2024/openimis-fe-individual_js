@@ -263,6 +263,7 @@ function IndividualSearcher({
 
   const rowIdentifier = (individual) => individual.id;
 
+  // Enrollment previews preserve the backend's deterministic ranking order.
   const sorts = () => (isModalEnrollment ? [] : [
     ['firstName', true],
     ['lastName', true],
