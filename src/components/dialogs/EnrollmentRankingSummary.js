@@ -3,7 +3,14 @@ import { Grid, Paper, Typography } from '@material-ui/core';
 import { formatMessage, formatMessageWithValues } from '@openimis/fe-core';
 import { parseEnrollmentRanking } from '../../utils';
 
-export default function EnrollmentRankingSummary({ intl, summary }) {
+export default function EnrollmentRankingSummary({
+  intl,
+  summary,
+  entityKey,
+  entityLabelKey,
+}) {
+  const entity = formatMessage(intl, 'individual', entityKey);
+  const entityLabel = formatMessage(intl, 'individual', entityLabelKey);
   const ranking = parseEnrollmentRanking(summary?.enrolmentRanking);
   const orderBy = ranking?.order_by || [];
   const orderLabel = orderBy.map((entry) => (
@@ -24,7 +31,7 @@ export default function EnrollmentRankingSummary({ intl, summary }) {
       <Grid item xs={4}>
         <Paper elevation={3} style={{ padding: '20px' }}>
           <Typography variant="h6">
-            {formatMessage(intl, 'individual', 'individual.enrollment.eligiblePool')}
+            {formatMessageWithValues(intl, 'individual', 'individual.enrollment.eligiblePool', { entity })}
           </Typography>
           <Typography>{summary?.poolSize}</Typography>
         </Paper>
@@ -32,7 +39,7 @@ export default function EnrollmentRankingSummary({ intl, summary }) {
       <Grid item xs={4}>
         <Paper elevation={3} style={{ padding: '20px' }}>
           <Typography variant="h6">
-            {formatMessage(intl, 'individual', 'individual.enrollment.capApplied')}
+            {formatMessageWithValues(intl, 'individual', 'individual.enrollment.capApplied', { entity })}
           </Typography>
           <Typography>
             {summary?.capApplied ?? formatMessage(intl, 'individual', 'individual.enrollment.noCap')}
@@ -41,7 +48,9 @@ export default function EnrollmentRankingSummary({ intl, summary }) {
       </Grid>
       <Grid item xs={4}>
         <Paper elevation={3} style={{ padding: '20px' }}>
-          <Typography variant="h6">{formatMessage(intl, 'individual', 'individual.enrollment.willEnroll')}</Typography>
+          <Typography variant="h6">
+            {formatMessageWithValues(intl, 'individual', 'individual.enrollment.willEnroll', { entity: entityLabel })}
+          </Typography>
           <Typography>{summary?.willEnrol}</Typography>
         </Paper>
       </Grid>
@@ -60,10 +69,20 @@ export default function EnrollmentRankingSummary({ intl, summary }) {
           <Typography>{capExplanation}</Typography>
         </Grid>
       )}
-      {summary?.willEnrol === 0 && (
+      {summary?.poolSize === 0 && (
         <Grid item xs={12}>
           <Typography color="error">
-            {formatMessage(intl, 'individual', 'individual.enrollment.noRemainingCapacity')}
+            {formatMessageWithValues(intl, 'individual', 'individual.enrollment.emptyEligiblePool', { entity })}
+          </Typography>
+        </Grid>
+      )}
+      {summary?.poolSize > 0 && summary?.capApplied === 0 && (
+        <Grid item xs={12}>
+          <Typography color="error">
+            {formatMessageWithValues(intl, 'individual', 'individual.enrollment.noRemainingCapacity', {
+              entity,
+              poolSize: summary.poolSize,
+            })}
           </Typography>
         </Grid>
       )}
