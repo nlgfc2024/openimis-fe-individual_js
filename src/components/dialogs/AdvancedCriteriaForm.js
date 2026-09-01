@@ -307,7 +307,12 @@ function AdvancedCriteriaForm({
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
         </div>
         <Divider />
-        <EnrollmentRankingSummary intl={intl} summary={enrollmentSummary} />
+        <EnrollmentRankingSummary
+          intl={intl}
+          summary={enrollmentSummary}
+          entityKey="individual.enrollment.entityIndividuals"
+          entityLabelKey="individual.enrollment.entityIndividualsLabel"
+        />
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Paper elevation={3} style={{ padding: '20px' }}>

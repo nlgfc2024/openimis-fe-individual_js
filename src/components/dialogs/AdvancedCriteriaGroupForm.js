@@ -308,7 +308,12 @@ function AdvancedCriteriaGroupForm({
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
         </div>
         <Divider />
-        <EnrollmentRankingSummary intl={intl} summary={enrollmentGroupSummary} />
+        <EnrollmentRankingSummary
+          intl={intl}
+          summary={enrollmentGroupSummary}
+          entityKey="individual.enrollment.entityGroups"
+          entityLabelKey="individual.enrollment.entityGroupsLabel"
+        />
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Paper elevation={3} style={{ padding: '20px' }}>
@@ -361,17 +366,6 @@ function AdvancedCriteriaGroupForm({
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {/* eslint-disable-next-line max-len */}
-                {formatMessage(intl, 'individual', 'individual.enrollment.numberOfGroupsToUpload')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.numberOfGroupsToUpload}
-              </Typography>
-            </Paper>
-          </Grid>
         </Grid>
         <Grid container spacing={3}>
           <Grid item xs={5} />
@@ -381,7 +375,7 @@ function AdvancedCriteriaGroupForm({
               variant="contained"
               color="primary"
               autoFocus
-              disabled={!object || confirmed || enrollmentGroupSummary.numberOfGroupsToUpload === '0'}
+              disabled={!object || confirmed || enrollmentGroupSummary.willEnrol === 0}
             >
               {formatMessage(intl, 'individual', 'individual.enrollment.confirmEnrollment')}
             </Button>
