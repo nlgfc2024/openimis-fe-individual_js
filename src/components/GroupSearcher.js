@@ -5,6 +5,7 @@ import {
   formatMessage,
   formatMessageWithValues,
   Searcher,
+  SearcherActionButton,
   withHistory,
   historyPush,
   downloadExport,
@@ -24,6 +25,9 @@ import {
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import {
   deleteGroup, downloadGroups, fetchGroups, clearGroupExport,
 } from '../actions';
@@ -31,7 +35,6 @@ import {
   DEFAULT_PAGE_SIZE,
   ROWS_PER_PAGE_OPTIONS,
   RIGHT_GROUP_UPDATE, RIGHT_GROUP_DELETE, INDIVIDUAL_MODULE_NAME, INDIVIDUAL_LABEL,
-  INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY,
 } from '../constants';
 import GroupFilter from './GroupFilter';
 import {
@@ -74,10 +77,17 @@ function GroupSearcher({
   const [appliedCustomFilters, setAppliedCustomFilters] = useState([CLEARED_STATE_FILTER]);
   const [appliedFiltersRowStructure, setAppliedFiltersRowStructure] = useState([CLEARED_STATE_FILTER]);
   const prevSubmittingMutationRef = useRef();
+  const UploadValidatedListDialog = modulesManager.getRef(
+    "householdValidation.UploadValidatedListDialog",
+  );
 
   function groupUpdatePageUrl(group) {
     return `${modulesManager.getRef('individual.route.group')}/${group?.id}`;
   }
+
+  const openGroupEnrollment = () => historyPush(
+    modulesManager, history, 'individual.route.groupEnrollment',
+  );
 
   const openDeleteGroupConfirmDialog = () => coreConfirm(
     formatMessageWithValues(intl, 'individual', 'group.delete.confirm.title', {
@@ -260,19 +270,45 @@ function GroupSearcher({
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
-        exportable
-        exportFetch={downloadGroups}
-        exportFields={[
-          'id',
-          'json_ext', // Unfolded by backend and removed from csv
+        enableActionButtons
+        searcherActionsPosition="header-right"
+        searcherActions={[
+          {
+            label: formatMessage(intl, 'individual', 'groups.action.enrollment'),
+            icon: <GroupAddIcon />,
+            authorized: true,
+            variant: 'contained',
+            onClick: openGroupEnrollment,
+          },
+          {
+            label: formatMessage(intl, 'individual', 'groups.action.export'),
+            icon: <GetAppIcon />,
+            authorized: true,
+            variant: 'outlined',
+            onClick: (params) => downloadGroups(params),
+          },
+          {
+            authorized: !!UploadValidatedListDialog,
+            render: ({ className, size }) => (
+              <UploadValidatedListDialog
+                renderTrigger={({ onClick, label }) => (
+                  <SearcherActionButton
+                    onClick={onClick}
+                    startIcon={<CloudUploadIcon />}
+                    label={label}
+                    variant="outlined"
+                    size={size}
+                    className={className}
+                    borderless={false}
+                  />
+                )}
+              />
+            ),
+          },
         ]}
-        exportFieldsColumns={{
-          id: 'ID',
-        }}
-        exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         cacheFiltersKey="groupsFilterCache"
         resetFiltersOnUnmount
-        isCustomFiltering
+        isCustomFiltering={isModalEnrollment === false}
         moduleName={INDIVIDUAL_MODULE_NAME}
         objectType={INDIVIDUAL_LABEL}
         additionalCustomFilterParams={{ type: 'GROUP' }}
@@ -283,10 +319,6 @@ function GroupSearcher({
         applyNumberCircle={applyNumberCircle}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
-        // eslint-disable-next-line react/jsx-props-no-spreading, max-len
-        {...(isModalEnrollment === false ? {
-          actionsContributionKey: INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY, isCustomFiltering: true,
-        } : { isCustomFiltering: false })}
       />
       {failedExport && (
         <Dialog open={failedExport} fullWidth maxWidth="sm">

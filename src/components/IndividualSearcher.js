@@ -5,6 +5,7 @@ import {
   formatMessage,
   formatMessageWithValues,
   Searcher,
+  SearcherActionButton,
   formatDateFromISO,
   coreConfirm,
   clearConfirm,
@@ -27,6 +28,10 @@ import {
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import UndoIcon from '@material-ui/icons/Undo';
+import PersonAddIcon from '@material-ui/icons/PersonAdd';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import HistoryIcon from '@material-ui/icons/History';
 import {
   fetchIndividuals,
   deleteIndividual,
@@ -44,7 +49,6 @@ import {
   FETCH_BENEFIT_PLAN_SCHEMA_FIELDS_REF,
   INDIVIDUAL_MODULE_NAME,
   INDIVIDUAL_LABEL,
-  INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY,
 } from '../constants';
 import IndividualFilter from './IndividualFilter';
 import {
@@ -93,6 +97,8 @@ function IndividualSearcher({
   const [appliedFiltersRowStructure, setAppliedFiltersRowStructure] = useState([CLEARED_STATE_FILTER]);
   const [deletedIndividualUuids, setDeletedIndividualUuids] = useState([]);
   const [undoIndividualUuids, setUndoIndividualUuids] = useState([]);
+  const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
+  const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
   const [exportFields, setExportFields] = useState([
     'id',
     'first_name',
@@ -330,6 +336,43 @@ function IndividualSearcher({
     // refresh when appliedCustomFilters is changed
   }, [appliedCustomFilters]);
 
+  const openIndividualEnrollment = () => historyPush(
+    modulesManager, history, 'individual.route.enrollment',
+  );
+
+  const searcherActions = [
+    {
+      label: formatMessage(intl, 'individual', 'individual.enrollment.buttonLabel'),
+      icon: <PersonAddIcon />,
+      authorized: isModalEnrollment === false,
+      variant: 'contained',
+      onClick: openIndividualEnrollment,
+    },
+    {
+      authorized: isModalEnrollment === false && !!IndividualsUploadDialog,
+      render: ({ className, size }) => (
+        <IndividualsUploadDialog renderTrigger={({ onClick, label }) => (
+          <SearcherActionButton onClick={onClick} startIcon={<CloudUploadIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
+        )} />
+      ),
+    },
+    {
+      authorized: isModalEnrollment === false && !!IndividualsUploadHistoryDialog,
+      render: ({ className, size }) => (
+        <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
+          <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
+        )} />
+      ),
+    },
+    {
+      label: formatMessage(intl, 'individual', 'export.label'),
+      icon: <GetAppIcon />,
+      authorized: true,
+      variant: 'outlined',
+      onClick: (params) => downloadIndividuals(params),
+    },
+  ];
+
   return (
     <div>
       <Searcher
@@ -341,9 +384,7 @@ function IndividualSearcher({
         fetchingItems={fetchingIndividuals}
         fetchedItems={fetchedIndividuals}
         errorItems={errorIndividuals}
-        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', {
-          individualsTotalCount,
-        })}
+        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', { individualsTotalCount })}
         headers={headers}
         itemFormatters={itemFormatters}
         sorts={sorts}
@@ -355,9 +396,10 @@ function IndividualSearcher({
         defaultFilters={defaultFilters()}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
-        exportable
-        exportFetch={downloadIndividuals}
-        isCustomFiltering
+        enableActionButtons
+        searcherActionsPosition="header-right"
+        searcherActions={searcherActions}
+        isCustomFiltering={isModalEnrollment === false}
         moduleName={INDIVIDUAL_MODULE_NAME}
         objectType={INDIVIDUAL_LABEL}
         additionalCustomFilterParams={{ type: 'INDIVIDUAL' }}
@@ -366,16 +408,8 @@ function IndividualSearcher({
         appliedFiltersRowStructure={appliedFiltersRowStructure}
         setAppliedFiltersRowStructure={setAppliedFiltersRowStructure}
         applyNumberCircle={applyNumberCircle}
-        exportFields={exportFields}
-        exportFieldsColumns={exportFieldsColumns}
-        exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
-        chooseExportableColumns
         cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
-        // eslint-disable-next-line react/jsx-props-no-spreading, max-len
-        {...(isModalEnrollment === false ? {
-          actionsContributionKey: INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY, isCustomFiltering: true,
-        } : { isCustomFiltering: false })}
       />
       {failedExport && (
         <Dialog open={failedExport} fullWidth maxWidth="sm">

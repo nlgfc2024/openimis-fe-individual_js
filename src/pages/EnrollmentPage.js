@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/styles';
 
 import {
   Form,
+  InfoBanner,
   useHistory,
   useModulesManager,
   useTranslations,
@@ -38,6 +39,9 @@ function EnrollmentPage({
 
   return (
     <div className={classes.page}>
+      <InfoBanner title={formatMessage("individual.enrollment.guidance.title")}>
+        {formatMessage("individual.enrollment.guidance.individual")}
+      </InfoBanner>
       <Form
         key=""
         module="individual"
