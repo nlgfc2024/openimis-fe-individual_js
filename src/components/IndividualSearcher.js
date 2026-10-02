@@ -29,7 +29,6 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import UndoIcon from '@material-ui/icons/Undo';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
-import GetAppIcon from '@material-ui/icons/GetApp';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import HistoryIcon from '@material-ui/icons/History';
 import {
@@ -49,6 +48,7 @@ import {
   FETCH_BENEFIT_PLAN_SCHEMA_FIELDS_REF,
   INDIVIDUAL_MODULE_NAME,
   INDIVIDUAL_LABEL,
+  INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY,
 } from '../constants';
 import IndividualFilter from './IndividualFilter';
 import {
@@ -364,13 +364,6 @@ function IndividualSearcher({
         )} />
       ),
     },
-    {
-      label: formatMessage(intl, 'individual', 'export.label'),
-      icon: <GetAppIcon />,
-      authorized: true,
-      variant: 'outlined',
-      onClick: (params) => downloadIndividuals(params),
-    },
   ];
 
   return (
@@ -396,10 +389,16 @@ function IndividualSearcher({
         defaultFilters={defaultFilters()}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
+        exportable
+        exportFetch={downloadIndividuals}
+        exportFields={exportFields}
+        exportFieldsColumns={exportFieldsColumns}
+        exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
+        chooseExportableColumns
         enableActionButtons
         searcherActionsPosition="header-right"
         searcherActions={searcherActions}
-        isCustomFiltering={isModalEnrollment === false}
+        downloadWithIconButton
         moduleName={INDIVIDUAL_MODULE_NAME}
         objectType={INDIVIDUAL_LABEL}
         additionalCustomFilterParams={{ type: 'INDIVIDUAL' }}
@@ -410,6 +409,10 @@ function IndividualSearcher({
         applyNumberCircle={applyNumberCircle}
         cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
+        // eslint-disable-next-line react/jsx-props-no-spreading, max-len
+        {...(isModalEnrollment === false ? {
+          actionsContributionKey: INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY, isCustomFiltering: true,
+        } : { isCustomFiltering: false })}
       />
       {failedExport && (
         <Dialog open={failedExport} fullWidth maxWidth="sm">

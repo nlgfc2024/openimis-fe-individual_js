@@ -28,6 +28,7 @@ function EnrollmentGroupPage({
   const classes = useStyles();
   const history = useHistory();
   const { formatMessage } = useTranslations('individual', modulesManager);
+  const { show_enrollment_guidance: showEnrollmentGuidance } = modulesManager.getRef('individual.enrollmentUiConfig') || {};
 
   const [editedEnrollment, setEditedEnrollment] = useState({
     status: DEFAULT_BENEFICIARY_STATUS,
@@ -39,9 +40,11 @@ function EnrollmentGroupPage({
 
   return (
     <div className={classes.page}>
-      <InfoBanner title={formatMessage("individual.enrollment.guidance.title")}>
-        {formatMessage("individual.enrollment.guidance.household")}
-      </InfoBanner>
+      {showEnrollmentGuidance && (
+        <InfoBanner title={formatMessage("individual.enrollment.guidance.title")}>
+          {formatMessage("individual.enrollment.guidance.household")}
+        </InfoBanner>
+      )}
       <Form
         key=""
         module="individual"

@@ -1,7 +1,7 @@
 {
-  "individual.enrollment.guidance.title": "Enrollment has a few stages",
-  "individual.enrollment.guidance.individual": "First, enrol individuals to the phase on this screen and submit them. They then go to your supervisor for approval. Once approved, you can assign the approved individuals to their projects under the Projects tab.",
-  "individual.enrollment.guidance.household": "First, enrol households to the phase on this screen and submit them. They then go to your supervisor for approval. Once approved, you can assign the approved households to their projects under the Projects tab.",
+  "individual.enrollment.guidance.title": "Enrollment guidance",
+  "individual.enrollment.guidance.individual": "Complete and submit the individual enrollment form.",
+  "individual.enrollment.guidance.household": "Complete and submit the household enrollment form.",
   "individual.groups.action.enrollment": "Enrollment",
   "individual.groups.action.export": "Export",
   "mainMenuIndividuals": "Beneficiares and Households",
