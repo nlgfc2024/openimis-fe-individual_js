@@ -24,6 +24,7 @@ import {
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import {
   deleteGroup, downloadGroups, fetchGroups, clearGroupExport,
 } from '../actions';
@@ -78,6 +79,10 @@ function GroupSearcher({
   function groupUpdatePageUrl(group) {
     return `${modulesManager.getRef('individual.route.group')}/${group?.id}`;
   }
+
+  const openGroupEnrollment = () => historyPush(
+    modulesManager, history, 'individual.route.groupEnrollment',
+  );
 
   const openDeleteGroupConfirmDialog = () => coreConfirm(
     formatMessageWithValues(intl, 'individual', 'group.delete.confirm.title', {
@@ -264,15 +269,26 @@ function GroupSearcher({
         exportFetch={downloadGroups}
         exportFields={[
           'id',
-          'json_ext', // Unfolded by backend and removed from csv
+          'json_ext',
         ]}
         exportFieldsColumns={{
           id: 'ID',
         }}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
+        enableActionButtons
+        searcherActionsPosition="header-right"
+        searcherActions={[
+          {
+            label: formatMessage(intl, 'individual', 'groups.action.enrollment'),
+            icon: <GroupAddIcon />,
+            authorized: isModalEnrollment === false,
+            variant: 'contained',
+            onClick: openGroupEnrollment,
+          },
+        ]}
+        downloadWithIconButton
         cacheFiltersKey="groupsFilterCache"
         resetFiltersOnUnmount
-        isCustomFiltering
         moduleName={INDIVIDUAL_MODULE_NAME}
         objectType={INDIVIDUAL_LABEL}
         additionalCustomFilterParams={{ type: 'GROUP' }}

@@ -34,6 +34,7 @@ function IndividualsUploadDialog({
   workflows,
   fetchWorkflows,
   coreAlert,
+  renderTrigger,
 }) {
   const modulesManager = useModulesManager();
   const [isOpen, setIsOpen] = useState(false);
@@ -168,17 +169,16 @@ function IndividualsUploadDialog({
 
   return (
     <>
-      <MenuItem>
-        <a href={enrollmentPageUrl()} style={{ color: 'inherit', textDecoration: 'none' }}>
-          {formatMessage(intl, 'individual', 'individual.enrollment.buttonLabel')}
-        </a>
-      </MenuItem>
-      <MenuItem
-        onClick={handleOpen}
-      >
-        {formatMessage(intl, 'individual', 'individual.upload.buttonLabel')}
-      </MenuItem>
-      <IndividualsHistoryUploadDialog />
+      {renderTrigger ? renderTrigger({
+        onClick: handleOpen,
+        label: formatMessage(intl, 'individual', 'individual.upload.buttonLabel'),
+      }) : (
+        <>
+          <MenuItem><a href={enrollmentPageUrl()} style={{ color: 'inherit', textDecoration: 'none' }}>{formatMessage(intl, 'individual', 'individual.enrollment.buttonLabel')}</a></MenuItem>
+          <MenuItem onClick={handleOpen}>{formatMessage(intl, 'individual', 'individual.upload.buttonLabel')}</MenuItem>
+          <IndividualsHistoryUploadDialog />
+        </>
+      )}
       <Dialog
         open={isOpen}
         onClose={handleClose}

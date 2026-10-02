@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/styles';
 
 import {
   Form,
+  InfoBanner,
   useHistory,
   useModulesManager,
   useTranslations,
@@ -27,6 +28,7 @@ function EnrollmentPage({
   const classes = useStyles();
   const history = useHistory();
   const { formatMessage } = useTranslations('individual', modulesManager);
+  const { show_enrollment_guidance: showEnrollmentGuidance } = modulesManager.getRef('individual.enrollmentUiConfig') || {};
 
   const [editedEnrollment, setEditedEnrollment] = useState({
     status: DEFAULT_BENEFICIARY_STATUS,
@@ -38,6 +40,11 @@ function EnrollmentPage({
 
   return (
     <div className={classes.page}>
+      {showEnrollmentGuidance && (
+        <InfoBanner title={formatMessage("individual.enrollment.guidance.title")}>
+          {formatMessage("individual.enrollment.guidance.individual")}
+        </InfoBanner>
+      )}
       <Form
         key=""
         module="individual"

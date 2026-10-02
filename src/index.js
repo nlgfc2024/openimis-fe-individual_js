@@ -46,6 +46,7 @@ import {
 } from './constants';
 import { GroupCreateTaskItemFormatters, GroupCreateTaskTableHeaders } from './components/tasks/GroupCreateTasks';
 import IndividualsUploadDialog from './components/dialogs/IndividualsUploadDialog';
+import IndividualsUploadHistoryDialog from './components/dialogs/IndividualsHistoryUploadDialog';
 import { BenefitsTabLabel, BenefitsTabPanel } from './components/BenefitsTab';
 import GroupIndividualHistorySearcher from './components/GroupIndividualHistorySearcher';
 import {
@@ -60,7 +61,6 @@ import {
   GroupUploadResolutionTaskTableHeaders,
 } from './components/tasks/GroupImportTasks';
 import EnrollmentGroupPage from './pages/EnrollmentGroupPage';
-import GroupMenu from './components/dialogs/GroupMenu';
 import { BenefitsGroupTabLabel, BenefitsGroupTabPanel } from './components/BenefitsGroupTab';
 import ImportDataApiPage from './pages/ImportDataApiPage';
 
@@ -126,13 +126,11 @@ const DEFAULT_CONFIG = {
     { key: 'individual.IndividualHistorySearcher', ref: IndividualHistorySearcher },
     { key: 'individual.GroupHistorySearcher', ref: GroupHistorySearcher },
     { key: 'individual.IndividualsUploadDialog', ref: IndividualsUploadDialog },
+    { key: 'individual.IndividualsUploadHistoryDialog', ref: IndividualsUploadHistoryDialog },
     { key: 'individual.GroupIndividualHistorySearcher', ref: GroupIndividualHistorySearcher },
     { key: 'individual.AdvancedCriteriaRowValue', ref: AdvancedCriteriaRowValue },
     { key: 'individual.IndividualPicker', ref: IndividualPicker },
-    { key: 'individual.group.GroupMenu', ref: GroupMenu },
   ],
-  'individual.IndividualsUploadDialog': IndividualsUploadDialog,
-  'individual.group.GroupMenu': GroupMenu,
   'individual.TabPanel.label': [
     BenefitPlansListTabLabel,
     IndividalChangelogTabLabel,
@@ -197,6 +195,7 @@ const DEFAULT_CONFIG = {
 const DEFAULT_ENROLLMENT_UI = {
   show_mandatory_criteria_summary: true,
   show_advanced_operator_filters: true,
+  show_enrollment_guidance: false,
 };
 
 export const IndividualModule = (cfg = {}) => ({

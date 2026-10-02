@@ -42,6 +42,7 @@ function IndividualsUploadHistoryDialog({
   history,
   fetchedHistory,
   fetchingHistory,
+  renderTrigger,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [records, setRecords] = useState([]);
@@ -77,11 +78,12 @@ function IndividualsUploadHistoryDialog({
 
   return (
     <>
-      <MenuItem
-        onClick={handleOpen}
-      >
-        {formatMessage(intl, 'individual', 'individual.upload.uploadHistoryTable.buttonLabel')}
-      </MenuItem>
+      {renderTrigger ? renderTrigger({
+        onClick: handleOpen,
+        label: formatMessage(intl, 'individual', 'individual.upload.uploadHistoryTable.buttonLabel'),
+      }) : (
+        <MenuItem onClick={handleOpen}>{formatMessage(intl, 'individual', 'individual.upload.uploadHistoryTable.buttonLabel')}</MenuItem>
+      )}
       <Dialog
         open={isOpen}
         onClose={handleClose}
