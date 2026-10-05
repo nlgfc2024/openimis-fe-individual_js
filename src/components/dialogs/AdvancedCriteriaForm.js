@@ -33,7 +33,11 @@ import {
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
 } from '../../utils';
-import { confirmEnrollment, fetchIndividualEnrollmentSummary } from '../../actions';
+import {
+  clearEnrollmentConfirmationSuccess,
+  confirmEnrollment,
+  fetchIndividualEnrollmentSummary,
+} from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
@@ -62,6 +66,7 @@ function AdvancedCriteriaForm({
   confirmEnrollment,
   confirmed,
   enrollmentConfirmationSucceeded,
+  clearEnrollmentConfirmationSuccess,
   clearConfirm,
   coreConfirm,
   rights,
@@ -204,6 +209,7 @@ function AdvancedCriteriaForm({
         message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
         severity: 'success',
       });
+      clearEnrollmentConfirmationSuccess();
     }
   }, [enrollmentConfirmationSucceeded]);
 
@@ -440,6 +446,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchIndividualEnrollmentSummary,
   confirmEnrollment,
+  clearEnrollmentConfirmationSuccess,
   clearConfirm,
   coreAlert,
   coreConfirm,

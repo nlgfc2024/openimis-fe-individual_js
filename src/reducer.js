@@ -174,6 +174,16 @@ function reducer(
         ...state,
         enrollmentGroupConfirmationSucceeded: true,
       };
+    case CLEAR(ACTION_TYPE.CONFIRM_ENROLLMENT):
+      return {
+        ...state,
+        enrollmentConfirmationSucceeded: false,
+      };
+    case CLEAR(ACTION_TYPE.CONFIRM_GROUP_ENROLLMENT):
+      return {
+        ...state,
+        enrollmentGroupConfirmationSucceeded: false,
+      };
     case REQUEST(ACTION_TYPE.SEARCH_INDIVIDUALS):
       return {
         ...state,

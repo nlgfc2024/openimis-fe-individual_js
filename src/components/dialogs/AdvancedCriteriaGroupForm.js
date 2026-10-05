@@ -33,7 +33,11 @@ import {
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
 } from '../../utils';
-import { confirmGroupEnrollment, fetchGroupEnrollmentSummary } from '../../actions';
+import {
+  clearGroupEnrollmentConfirmationSuccess,
+  confirmGroupEnrollment,
+  fetchGroupEnrollmentSummary,
+} from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
@@ -62,6 +66,7 @@ function AdvancedCriteriaGroupForm({
   confirmGroupEnrollment,
   confirmed,
   enrollmentGroupConfirmationSucceeded,
+  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
   coreConfirm,
   rights,
@@ -205,6 +210,7 @@ function AdvancedCriteriaGroupForm({
         message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
         severity: 'success',
       });
+      clearGroupEnrollmentConfirmationSuccess();
     }
   }, [enrollmentGroupConfirmationSucceeded]);
 
@@ -430,6 +436,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchGroupEnrollmentSummary,
   confirmGroupEnrollment,
+  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
   coreAlert,
   coreConfirm,
