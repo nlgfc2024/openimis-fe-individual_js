@@ -120,6 +120,7 @@ function reducer(
     enrollmentSummaryError: null,
     fetchingEnrollmentSummary: true,
     fetchedEnrollmentSummary: false,
+    enrollmentConfirmationSucceeded: false,
 
     fetchingIndividualDataUploadHistory: true,
     fetchedIndividualDataUploadHistory: false,
@@ -138,6 +139,7 @@ function reducer(
     enrollmentGroupSummaryError: null,
     fetchingEnrollmentGroupSummary: true,
     fetchedEnrollmentGroupSummary: false,
+    enrollmentGroupConfirmationSucceeded: false,
 
     pendingGroups: [],
     fetchingPendingGroups: true,
@@ -156,6 +158,22 @@ function reducer(
   action,
 ) {
   switch (action.type) {
+    case REQUEST(ACTION_TYPE.MUTATION):
+      return {
+        ...state,
+        enrollmentConfirmationSucceeded: false,
+        enrollmentGroupConfirmationSucceeded: false,
+      };
+    case SUCCESS(ACTION_TYPE.CONFIRM_ENROLLMENT):
+      return {
+        ...state,
+        enrollmentConfirmationSucceeded: true,
+      };
+    case SUCCESS(ACTION_TYPE.CONFIRM_GROUP_ENROLLMENT):
+      return {
+        ...state,
+        enrollmentGroupConfirmationSucceeded: true,
+      };
     case REQUEST(ACTION_TYPE.SEARCH_INDIVIDUALS):
       return {
         ...state,

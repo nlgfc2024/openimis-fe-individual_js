@@ -89,6 +89,8 @@ function GroupSearcher({
       id: groupToDelete.id,
     }),
     formatMessage(intl, 'individual', 'group.delete.confirm.message'),
+    null,
+    'warning',
   );
 
   const onDoubleClick = (group, newTab = false) => rights.includes(RIGHT_GROUP_UPDATE)

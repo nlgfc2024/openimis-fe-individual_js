@@ -141,6 +141,8 @@ function IndividualPage({
         lastName: individual?.lastName,
       }),
       formatMessage(intl, 'individual', 'individual.delete.confirm.message'),
+      null,
+      'warning',
     );
   };
 

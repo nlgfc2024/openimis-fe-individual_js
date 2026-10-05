@@ -9,6 +9,7 @@ import {
   formatMessage,
   formatMessageWithValues,
   fetchCustomFilter,
+  coreAlert,
   coreConfirm,
   clearConfirm,
 } from '@openimis/fe-core';
@@ -60,6 +61,7 @@ function AdvancedCriteriaGroupForm({
   fetchedEnrollmentGroupSummary,
   confirmGroupEnrollment,
   confirmed,
+  enrollmentGroupConfirmationSucceeded,
   clearConfirm,
   coreConfirm,
   rights,
@@ -191,8 +193,20 @@ function AdvancedCriteriaGroupForm({
     coreConfirm(
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmGroupMessageDialog', { benefitPlanName: object.name }),
+      null,
+      'warning',
     );
   };
+
+  useEffect(() => {
+    if (enrollmentGroupConfirmationSucceeded) {
+      coreAlert({
+        title: formatMessage(intl, 'individual', 'individual.enrollment.successTitle'),
+        message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
+        severity: 'success',
+      });
+    }
+  }, [enrollmentGroupConfirmationSucceeded]);
 
   useEffect(() => {
     if (confirmed) {
@@ -409,6 +423,7 @@ const mapStateToProps = (state, props) => ({
   errorEnrollmentGroupSummary: state.individual.errorEnrollmentGroupSummary,
   fetchedEnrollmentGroupSummary: state.individual.fetchedEnrollmentGroupSummary,
   enrollmentGroupSummary: state.individual.enrollmentGroupSummary,
+  enrollmentGroupConfirmationSucceeded: state.individual.enrollmentGroupConfirmationSucceeded,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
@@ -416,6 +431,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchGroupEnrollmentSummary,
   confirmGroupEnrollment,
   clearConfirm,
+  coreAlert,
   coreConfirm,
 }, dispatch);
 

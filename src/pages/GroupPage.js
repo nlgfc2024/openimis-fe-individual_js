@@ -152,6 +152,8 @@ function GroupPage({
         id: group?.id,
       }),
       formatMessage(intl, 'individual', 'group.delete.confirm.message'),
+      null,
+      'warning',
     );
   };
 
