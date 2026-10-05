@@ -395,8 +395,7 @@ function IndividualSearcher({
         exportFieldsColumns={exportFieldsColumns}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         chooseExportableColumns
-        enableActionButtons
-        searcherActionsPosition="header-right"
+        enableHeaderActionButtons
         searcherActions={searcherActions}
         downloadWithIconButton
         moduleName={INDIVIDUAL_MODULE_NAME}

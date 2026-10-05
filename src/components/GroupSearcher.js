@@ -275,8 +275,7 @@ function GroupSearcher({
           id: 'ID',
         }}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
-        enableActionButtons
-        searcherActionsPosition="header-right"
+        enableHeaderActionButtons
         searcherActions={[
           {
             label: formatMessage(intl, 'individual', 'groups.action.enrollment'),
