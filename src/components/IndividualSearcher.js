@@ -140,6 +140,8 @@ function IndividualSearcher({
       lastName: individualToDelete.lastName,
     }),
     formatMessage(intl, 'individual', 'individual.delete.confirm.message'),
+    null,
+    'warning',
   );
 
   const openUndoIndividualConfirmDialog = () => coreConfirm(

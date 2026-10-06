@@ -88,6 +88,8 @@ function GroupIndividualSearcher({
       lastName: groupIndividualToDelete.individual.lastName,
     }),
     formatMessage(intl, 'individual', 'individual.delete.confirm.message'),
+    null,
+    'warning',
   );
 
   const onDoubleClick = (groupIndividual, newTab = false) => rights.includes(RIGHT_GROUP_INDIVIDUAL_UPDATE)

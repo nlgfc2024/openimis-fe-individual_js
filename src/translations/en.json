@@ -82,6 +82,8 @@
   "individual.enrollment.previewEnrollment": "Preview Enrollment Process",
   "individual.enrollment.confirmEnrollment": "Confirm Enrollment Process",
   "individual.enrollment.confirmTitle": "Confirm Enrollment Process",
+  "individual.enrollment.successTitle": "Enrollment submitted",
+  "individual.enrollment.successMessage": "Enrollment submitted for approval.",
   "individual.enrollment.mutationLabel": "Enrollment has been confirmed",
   "individual.enrollment.numberOfSelectedIndividuals": "Total Number Of Selected Individuals",
   "individual.enrollment.totalNumberOfIndividuals": "Total Number of Individuals",

@@ -9,6 +9,7 @@ import {
   formatMessage,
   formatMessageWithValues,
   fetchCustomFilter,
+  coreAlert,
   coreConfirm,
   clearConfirm,
 } from '@openimis/fe-core';
@@ -32,7 +33,11 @@ import {
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
 } from '../../utils';
-import { confirmGroupEnrollment, fetchGroupEnrollmentSummary } from '../../actions';
+import {
+  clearGroupEnrollmentConfirmationSuccess,
+  confirmGroupEnrollment,
+  fetchGroupEnrollmentSummary,
+} from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
@@ -60,6 +65,8 @@ function AdvancedCriteriaGroupForm({
   fetchedEnrollmentGroupSummary,
   confirmGroupEnrollment,
   confirmed,
+  enrollmentGroupConfirmationSucceeded,
+  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
   coreConfirm,
   rights,
@@ -191,8 +198,21 @@ function AdvancedCriteriaGroupForm({
     coreConfirm(
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmGroupMessageDialog', { benefitPlanName: object.name }),
+      null,
+      'warning',
     );
   };
+
+  useEffect(() => {
+    if (enrollmentGroupConfirmationSucceeded) {
+      coreAlert({
+        title: formatMessage(intl, 'individual', 'individual.enrollment.successTitle'),
+        message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
+        severity: 'success',
+      });
+      clearGroupEnrollmentConfirmationSuccess();
+    }
+  }, [enrollmentGroupConfirmationSucceeded]);
 
   useEffect(() => {
     if (confirmed) {
@@ -409,13 +429,16 @@ const mapStateToProps = (state, props) => ({
   errorEnrollmentGroupSummary: state.individual.errorEnrollmentGroupSummary,
   fetchedEnrollmentGroupSummary: state.individual.fetchedEnrollmentGroupSummary,
   enrollmentGroupSummary: state.individual.enrollmentGroupSummary,
+  enrollmentGroupConfirmationSucceeded: state.individual.enrollmentGroupConfirmationSucceeded,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchGroupEnrollmentSummary,
   confirmGroupEnrollment,
+  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
+  coreAlert,
   coreConfirm,
 }, dispatch);
 

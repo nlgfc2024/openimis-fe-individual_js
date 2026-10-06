@@ -9,6 +9,7 @@ import {
   formatMessage,
   formatMessageWithValues,
   fetchCustomFilter,
+  coreAlert,
   coreConfirm,
   clearConfirm,
 } from '@openimis/fe-core';
@@ -32,7 +33,11 @@ import {
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
 } from '../../utils';
-import { confirmEnrollment, fetchIndividualEnrollmentSummary } from '../../actions';
+import {
+  clearEnrollmentConfirmationSuccess,
+  confirmEnrollment,
+  fetchIndividualEnrollmentSummary,
+} from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
 
@@ -60,6 +65,8 @@ function AdvancedCriteriaForm({
   fetchedEnrollmentSummary,
   confirmEnrollment,
   confirmed,
+  enrollmentConfirmationSucceeded,
+  clearEnrollmentConfirmationSuccess,
   clearConfirm,
   coreConfirm,
   rights,
@@ -190,8 +197,21 @@ function AdvancedCriteriaForm({
     coreConfirm(
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmMessageDialog', { benefitPlanName: object.name }),
+      null,
+      'warning',
     );
   };
+
+  useEffect(() => {
+    if (enrollmentConfirmationSucceeded) {
+      coreAlert({
+        title: formatMessage(intl, 'individual', 'individual.enrollment.successTitle'),
+        message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
+        severity: 'success',
+      });
+      clearEnrollmentConfirmationSuccess();
+    }
+  }, [enrollmentConfirmationSucceeded]);
 
   useEffect(() => {
     if (confirmed) {
@@ -419,13 +439,16 @@ const mapStateToProps = (state, props) => ({
   errorEnrollmentSummary: state.individual.errorEnrollmentSummary,
   fetchedEnrollmentSummary: state.individual.fetchedEnrollmentSummary,
   enrollmentSummary: state.individual.enrollmentSummary,
+  enrollmentConfirmationSucceeded: state.individual.enrollmentConfirmationSucceeded,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchIndividualEnrollmentSummary,
   confirmEnrollment,
+  clearEnrollmentConfirmationSuccess,
   clearConfirm,
+  coreAlert,
   coreConfirm,
 }, dispatch);
 
