@@ -195,7 +195,7 @@ const DEFAULT_CONFIG = {
 const DEFAULT_ENROLLMENT_UI = {
   show_mandatory_criteria_summary: true,
   show_advanced_operator_filters: true,
-  show_enrollment_guidance: false,
+  show_enrollment_guidance: true,
 };
 
 export const IndividualModule = (cfg = {}) => ({
