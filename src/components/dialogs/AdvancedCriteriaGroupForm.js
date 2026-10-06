@@ -218,6 +218,11 @@ function AdvancedCriteriaGroupForm({
         benefitPlanId: `"${decodeId(object.id)}"`,
         status: `"${status}"`,
       };
+      const summaryParams = [
+        `customFilters: [${customFilters}]`,
+        `benefitPlanId: "${decodeId(object.id)}"`,
+        `status: "${status}"`,
+      ];
       setIsSubmitting(true);
       clearConfirm(false);
       const submitEnrollment = async () => {
@@ -227,12 +232,12 @@ function AdvancedCriteriaGroupForm({
         );
         const succeeded = Boolean(response) && !response.error && !response?.payload?.errors?.length;
         if (succeeded) {
+          fetchGroupEnrollmentSummary(summaryParams);
           setIsSubmitting(false);
           requestAnimationFrame(() => coreAlert({
-            title: formatMessage(intl, 'individual', 'individual.enrollment.successGroupTitle'),
-            message: formatMessage(intl, 'individual', 'individual.enrollment.successGroupMessage'),
+            title: formatMessage(intl, 'individual', 'individual.enrollment.submissionGroupTitle'),
+            message: formatMessage(intl, 'individual', 'individual.enrollment.submissionGroupMessage'),
             severity: 'success',
-            refreshOnClose: true,
           }));
         } else {
           setIsSubmitting(false);
