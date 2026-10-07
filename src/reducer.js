@@ -609,14 +609,16 @@ function reducer(
       return {
         ...state,
         fetchingEnrollmentGroupSummary: false,
-        fetchedEnrollmentGroupSummary: true,
-        enrollmentGroupSummary: action.payload.data.groupEnrollmentSummary,
+        fetchedEnrollmentGroupSummary: Boolean(action.payload?.data?.groupEnrollmentSummary),
+        enrollmentGroupSummary: action.payload?.data?.groupEnrollmentSummary || {},
         enrollmentGroupSummaryError: formatGraphQLError(action.payload),
       };
     case ERROR(ACTION_TYPE.ENROLLMENT_GROUP_SUMMARY):
       return {
         ...state,
         fetchingEnrollmentGroupSummary: false,
+        fetchedEnrollmentGroupSummary: false,
+        enrollmentGroupSummary: {},
         enrollmentGroupSummaryError: formatServerError(action.payload),
       };
     case REQUEST(ACTION_TYPE.GET_INDIVIDUAL_UPLOAD_HISTORY):

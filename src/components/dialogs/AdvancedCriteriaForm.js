@@ -29,6 +29,8 @@ import {
   isBase64Encoded,
   isEmptyObject,
   normalizeAdvancedCriteria,
+  programmeEnrollmentConditions,
+  programmeEnrollmentCriteriaValid,
   safeParseJsonObject,
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
@@ -40,6 +42,7 @@ import {
 } from '../../actions';
 import IndividualPreviewEnrollmentDialog from './IndividualPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
+import ProgrammeEnrollmentCriteria from './ProgrammeEnrollmentCriteria';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -80,6 +83,7 @@ function AdvancedCriteriaForm({
   const [phaseCriteria, setPhaseCriteria] = useState([]);
   const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
+  const [programmeCriteria, setProgrammeCriteria] = useState({});
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
   const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
@@ -111,6 +115,7 @@ function AdvancedCriteriaForm({
     );
     setPhaseCriteria(nextState.phaseCriteria);
     setOperatorFilters(nextState.operatorFilters);
+    setProgrammeCriteria({});
   }, [edited?.benefitPlan?.id, status]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
@@ -149,7 +154,9 @@ function AdvancedCriteriaForm({
   const saveCriteria = () => {
     setAppliedFiltersRowStructure(filters);
     const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
-    const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
+    const programmeConditions = programmeEnrollmentConditions(object, programmeCriteria);
+    const allConditions = [...operatorConditions, ...programmeConditions];
+    const outputFilters = JSON.stringify(allConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
     const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
     updateAttributes(jsonExt);
     setAppliedCustomFilters(outputFilters);
@@ -159,7 +166,10 @@ function AdvancedCriteriaForm({
     const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
     // Extract custom_filter_condition values and construct customFilters array
-    const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
+    const customFilters = toGraphQLStringLiterals([
+      ...advancedCriteria.map((criterion) => criterion.custom_filter_condition),
+      ...programmeConditions,
+    ]);
     setFiltersToApply(customFilters);
     const params = [
       `customFilters: [${customFilters}]`,
@@ -216,12 +226,16 @@ function AdvancedCriteriaForm({
   useEffect(() => {
     if (confirmed) {
       const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
+      const programmeConditions = programmeEnrollmentConditions(object, programmeCriteria);
       const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
       const jsonData = JSON.parse(jsonExt);
       const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
       // Extract custom_filter_condition values and construct customFilters array
-      const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
+      const customFilters = toGraphQLStringLiterals([
+        ...advancedCriteria.map((criterion) => criterion.custom_filter_condition),
+        ...programmeConditions,
+      ]);
       setFiltersToApply(customFilters);
       const params = {
         customFilters: `[${customFilters}]`,
@@ -238,6 +252,13 @@ function AdvancedCriteriaForm({
 
   return (
     <>
+      <ProgrammeEnrollmentCriteria
+        intl={intl}
+        benefitPlan={object}
+        value={programmeCriteria}
+        onChange={setProgrammeCriteria}
+        readOnly={confirmed}
+      />
       {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
@@ -314,7 +335,7 @@ function AdvancedCriteriaForm({
             variant="contained"
             color="primary"
             autoFocus
-            disabled={!object || confirmed}
+            disabled={!object || confirmed || !programmeEnrollmentCriteriaValid(object, programmeCriteria)}
           >
             {formatMessage(intl, 'individual', 'individual.enrollment.previewEnrollment')}
           </Button>

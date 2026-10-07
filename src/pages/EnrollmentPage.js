@@ -3,10 +3,10 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import { makeStyles } from '@material-ui/styles';
+import { Paper, Typography } from '@material-ui/core';
 
 import {
   Form,
-  InfoBanner,
   useHistory,
   useModulesManager,
   useTranslations,
@@ -19,6 +19,10 @@ import { DEFAULT_BENEFICIARY_STATUS } from '../constants';
 
 const useStyles = makeStyles((theme) => ({
   page: theme.page,
+  guidance: {
+    marginBottom: theme.spacing(2),
+    padding: theme.spacing(2),
+  },
 }));
 
 function EnrollmentPage({
@@ -41,9 +45,14 @@ function EnrollmentPage({
   return (
     <div className={classes.page}>
       {showEnrollmentGuidance && (
-        <InfoBanner title={formatMessage("individual.enrollment.guidance.title")}>
-          {formatMessage("individual.enrollment.guidance.individual")}
-        </InfoBanner>
+        <Paper className={classes.guidance} elevation={1}>
+          <Typography variant="subtitle1">
+            {formatMessage('individual.enrollment.guidance.title')}
+          </Typography>
+          <Typography variant="body2">
+            {formatMessage('individual.enrollment.guidance.individual')}
+          </Typography>
+        </Paper>
       )}
       <Form
         key=""

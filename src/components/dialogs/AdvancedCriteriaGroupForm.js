@@ -29,6 +29,8 @@ import {
   isBase64Encoded,
   isEmptyObject,
   normalizeAdvancedCriteria,
+  programmeEnrollmentConditions,
+  programmeEnrollmentCriteriaValid,
   safeParseJsonObject,
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
@@ -40,6 +42,7 @@ import {
 } from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
+import ProgrammeEnrollmentCriteria from './ProgrammeEnrollmentCriteria';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -80,9 +83,12 @@ function AdvancedCriteriaGroupForm({
   const [phaseCriteria, setPhaseCriteria] = useState([]);
   const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
+  const [programmeCriteria, setProgrammeCriteria] = useState({});
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
   const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
+  const hasEnrollmentGroupSummary = fetchedEnrollmentGroupSummary
+    && enrollmentGroupSummary != null;
 
   const getBenefitPlanDefaultCriteria = () => {
     const jsonData = safeParseJsonObject(edited?.benefitPlan?.jsonExt);
@@ -111,6 +117,7 @@ function AdvancedCriteriaGroupForm({
     );
     setPhaseCriteria(nextState.phaseCriteria);
     setOperatorFilters(nextState.operatorFilters);
+    setProgrammeCriteria({});
   }, [edited?.benefitPlan?.id, status]);
 
   const createParams = (moduleName, objectTypeName, uuidOfObject = null, additionalParams = null) => {
@@ -149,7 +156,9 @@ function AdvancedCriteriaGroupForm({
   const saveCriteria = () => {
     setAppliedFiltersRowStructure(filters);
     const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
-    const outputFilters = JSON.stringify(operatorConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
+    const programmeConditions = programmeEnrollmentConditions(object, programmeCriteria);
+    const allConditions = [...operatorConditions, ...programmeConditions];
+    const outputFilters = JSON.stringify(allConditions.map((custom_filter_condition) => ({ custom_filter_condition })));
     const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
     updateAttributes(jsonExt);
     setAppliedCustomFilters(outputFilters);
@@ -159,7 +168,10 @@ function AdvancedCriteriaGroupForm({
     const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
     // Extract custom_filter_condition values and construct customFilters array
-    const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
+    const customFilters = toGraphQLStringLiterals([
+      ...advancedCriteria.map((criterion) => criterion.custom_filter_condition),
+      ...programmeConditions,
+    ]);
     setFiltersToApply(customFilters);
     const params = [
       `customFilters: [${customFilters}]`,
@@ -217,12 +229,16 @@ function AdvancedCriteriaGroupForm({
   useEffect(() => {
     if (confirmed) {
       const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
+      const programmeConditions = programmeEnrollmentConditions(object, programmeCriteria);
       const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
       const jsonData = JSON.parse(jsonExt);
       const advancedCriteria = jsonData.advanced_criteria?.[status] || [];
 
       // Extract custom_filter_condition values and construct customFilters array
-      const customFilters = toGraphQLStringLiterals(advancedCriteria.map((criterion) => criterion.custom_filter_condition));
+      const customFilters = toGraphQLStringLiterals([
+        ...advancedCriteria.map((criterion) => criterion.custom_filter_condition),
+        ...programmeConditions,
+      ]);
       setFiltersToApply(customFilters);
       const params = {
         customFilters: `[${customFilters}]`,
@@ -239,6 +255,13 @@ function AdvancedCriteriaGroupForm({
 
   return (
     <>
+      <ProgrammeEnrollmentCriteria
+        intl={intl}
+        benefitPlan={object}
+        value={programmeCriteria}
+        onChange={setProgrammeCriteria}
+        readOnly={confirmed}
+      />
       {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
@@ -315,14 +338,14 @@ function AdvancedCriteriaGroupForm({
             variant="contained"
             color="primary"
             autoFocus
-            disabled={!object || confirmed}
+            disabled={!object || confirmed || !programmeEnrollmentCriteriaValid(object, programmeCriteria)}
           >
             {formatMessage(intl, 'individual', 'individual.enrollment.previewEnrollment')}
           </Button>
         </div>
       </div>
       <Divider />
-      {fetchedEnrollmentGroupSummary && (
+      {hasEnrollmentGroupSummary && (
       <div>
         <div className={classes.item}>
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}

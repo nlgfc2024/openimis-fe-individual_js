@@ -83,6 +83,40 @@ export function enrollmentOperatorConditions(filters, enabled = true) {
   return enabled ? toCustomFilterConditions(filters) : [];
 }
 
+export function enrollmentProgrammeCode(benefitPlan) {
+  const identity = `${benefitPlan?.code || ''} ${benefitPlan?.name || ''}`.toUpperCase();
+  return ['UPG', 'RMEP'].find((code) => new RegExp(`\\b${code}\\b`).test(identity)) || '';
+}
+
+export function programmeEnrollmentConditions(benefitPlan, values = {}) {
+  const code = enrollmentProgrammeCode(benefitPlan);
+  if (code === 'UPG') {
+    return values.preferredHeadGender
+      ? [`programme_criteria__preferred_head_gender__string=${JSON.stringify(values.preferredHeadGender)}`]
+      : [];
+  }
+  if (code === 'RMEP') {
+    const years = Math.max(0, Number(values.businessPeriodYears) || 0);
+    const months = Math.max(0, Number(values.businessPeriodMonths) || 0);
+    return [
+      `programme_criteria__business_period_years__integer=${years}`,
+      `programme_criteria__business_period_months__integer=${months}`,
+    ];
+  }
+  return [];
+}
+
+export function programmeEnrollmentCriteriaValid(benefitPlan, values = {}) {
+  const code = enrollmentProgrammeCode(benefitPlan);
+  if (code === 'UPG') return ['FEMALE', 'MALE'].includes(values.preferredHeadGender);
+  if (code === 'RMEP') {
+    const months = Number(values.businessPeriodMonths) || 0;
+    const years = Number(values.businessPeriodYears) || 0;
+    return years >= 0 && months >= 0 && months <= 11;
+  }
+  return true;
+}
+
 export function createEnrollmentCriteriaState(phaseCriteria = [], savedOperatorFilters = []) {
   const lockedPhaseCriteria = phaseCriteria.map((criterion) => ({ ...criterion, locked: true }));
   const phaseKeys = new Set(lockedPhaseCriteria.map(

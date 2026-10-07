@@ -1,5 +1,12 @@
 {
   "individual.enrollment.guidance.title": "Enrollment guidance",
+  "individual.enrollment.upg.title": "UPG enrollment criteria",
+  "individual.enrollment.upg.rules": "The household must be actively enrolled in SCTP and have at least one member aged 18–64.",
+  "individual.enrollment.rmep.title": "RMEP enrollment criteria",
+  "individual.enrollment.rmep.rules": "The household must be actively enrolled in PWP and have a member aged 18–55 who has a business.",
+  "individual.enrollment.preferredHeadGender": "Preferred household head gender",
+  "individual.enrollment.businessPeriodYears": "Minimum business period (years)",
+  "individual.enrollment.businessPeriodMonths": "Additional months",
   "individual.enrollment.guidance.individual": "Complete and submit the individual enrollment form.",
   "individual.enrollment.guidance.household": "Complete and submit the household enrollment form.",
   "individual.groups.action.enrollment": "Enrollment",

@@ -13,6 +13,8 @@ const {
   toGraphQLStringLiterals,
   updateEnrollmentJsonExt,
   parseEnrollmentRanking,
+  programmeEnrollmentConditions,
+  programmeEnrollmentCriteriaValid,
 } = loadEsModule(path.join(__dirname, '../src/utils.js'), {
   '@openimis/fe-core': { baseApiUrl: '/api' },
 });
@@ -164,4 +166,42 @@ test('ranking metadata parses object and serialized GraphQL representations', ()
   assert.deepEqual(parseEnrollmentRanking(ranking), ranking);
   assert.deepEqual(parseEnrollmentRanking(JSON.stringify(ranking)), ranking);
   assert.equal(parseEnrollmentRanking('{invalid'), null);
+});
+
+test('UPG enrollment emits the selected household-head gender', () => {
+  assert.deepEqual(
+    programmeEnrollmentConditions(
+      { code: 'upg' },
+      { preferredHeadGender: 'FEMALE' },
+    ),
+    ['programme_criteria__preferred_head_gender__string="FEMALE"'],
+  );
+  assert.equal(programmeEnrollmentCriteriaValid({ code: 'UPG' }, {}), false);
+  assert.equal(
+    programmeEnrollmentCriteriaValid(
+      { code: 'UPG' },
+      { preferredHeadGender: 'MALE' },
+    ),
+    true,
+  );
+});
+
+test('RMEP enrollment serializes business duration in years and months', () => {
+  assert.deepEqual(
+    programmeEnrollmentConditions(
+      { code: 'RMEP' },
+      { businessPeriodYears: 2, businessPeriodMonths: 6 },
+    ),
+    [
+      'programme_criteria__business_period_years__integer=2',
+      'programme_criteria__business_period_months__integer=6',
+    ],
+  );
+  assert.equal(
+    programmeEnrollmentCriteriaValid(
+      { code: 'RMEP' },
+      { businessPeriodYears: 1, businessPeriodMonths: 12 },
+    ),
+    false,
+  );
 });
