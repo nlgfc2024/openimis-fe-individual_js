@@ -380,14 +380,6 @@ export function confirmGroupEnrollment(params, clientMutationLabel) {
   );
 }
 
-export const clearEnrollmentConfirmationSuccess = () => ({
-  type: CLEAR(ACTION_TYPE.CONFIRM_ENROLLMENT),
-});
-
-export const clearGroupEnrollmentConfirmationSuccess = () => ({
-  type: CLEAR(ACTION_TYPE.CONFIRM_GROUP_ENROLLMENT),
-});
-
 export function updateGroupIndividual(groupIndividual, clientMutationLabel) {
   const mutation = formatMutation(
     'editIndividualInGroup',

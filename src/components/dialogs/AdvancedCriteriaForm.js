@@ -12,6 +12,7 @@ import {
   coreAlert,
   coreConfirm,
   clearConfirm,
+  LoadingOverlay,
 } from '@openimis/fe-core';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
@@ -34,7 +35,6 @@ import {
   updateEnrollmentJsonExt,
 } from '../../utils';
 import {
-  clearEnrollmentConfirmationSuccess,
   confirmEnrollment,
   fetchIndividualEnrollmentSummary,
 } from '../../actions';
@@ -65,9 +65,8 @@ function AdvancedCriteriaForm({
   fetchedEnrollmentSummary,
   confirmEnrollment,
   confirmed,
-  enrollmentConfirmationSucceeded,
-  clearEnrollmentConfirmationSuccess,
   clearConfirm,
+  coreAlert,
   coreConfirm,
   rights,
   edited,
@@ -80,6 +79,7 @@ function AdvancedCriteriaForm({
   const [phaseCriteria, setPhaseCriteria] = useState([]);
   const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
   const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
@@ -198,20 +198,9 @@ function AdvancedCriteriaForm({
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmMessageDialog', { benefitPlanName: object.name }),
       null,
-      'warning',
+      'info',
     );
   };
-
-  useEffect(() => {
-    if (enrollmentConfirmationSucceeded) {
-      coreAlert({
-        title: formatMessage(intl, 'individual', 'individual.enrollment.successTitle'),
-        message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
-        severity: 'success',
-      });
-      clearEnrollmentConfirmationSuccess();
-    }
-  }, [enrollmentConfirmationSucceeded]);
 
   useEffect(() => {
     if (confirmed) {
@@ -228,16 +217,38 @@ function AdvancedCriteriaForm({
         benefitPlanId: `"${decodeId(object.id)}"`,
         status: `"${status}"`,
       };
-      confirmEnrollment(
-        params,
-        formatMessage(intl, 'individual', 'individual.enrollment.mutationLabel'),
-      );
+      const summaryParams = [
+        `customFilters: [${customFilters}]`,
+        `benefitPlanId: "${decodeId(object.id)}"`,
+        `status: "${status}"`,
+      ];
+      setIsSubmitting(true);
+      clearConfirm(false);
+      const submitEnrollment = async () => {
+        const response = await confirmEnrollment(
+          params,
+          formatMessage(intl, 'individual', 'individual.enrollment.mutationLabel'),
+        );
+        const succeeded = Boolean(response) && !response.error && !response?.payload?.errors?.length;
+        if (succeeded) {
+          fetchIndividualEnrollmentSummary(summaryParams);
+          setIsSubmitting(false);
+          requestAnimationFrame(() => coreAlert({
+            title: formatMessage(intl, 'individual', 'individual.enrollment.submissionIndividualTitle'),
+            message: formatMessage(intl, 'individual', 'individual.enrollment.submissionIndividualMessage'),
+            severity: 'success',
+          }));
+        } else {
+          setIsSubmitting(false);
+        }
+      };
+      submitEnrollment();
     }
-    return () => confirmed && clearConfirm(false);
   }, [confirmed]);
 
   return (
     <>
+      <LoadingOverlay open={isSubmitting} label={formatMessage(intl, 'core', 'loading')} />
       {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
@@ -405,7 +416,7 @@ function AdvancedCriteriaForm({
               variant="contained"
               color="primary"
               autoFocus
-              disabled={!object || confirmed || enrollmentSummary.numberOfIndividualsToUpload === '0'}
+              disabled={!object || confirmed || isSubmitting || enrollmentSummary.numberOfIndividualsToUpload === '0'}
             >
               {formatMessage(intl, 'individual', 'individual.enrollment.confirmEnrollment')}
             </Button>
@@ -439,14 +450,12 @@ const mapStateToProps = (state, props) => ({
   errorEnrollmentSummary: state.individual.errorEnrollmentSummary,
   fetchedEnrollmentSummary: state.individual.fetchedEnrollmentSummary,
   enrollmentSummary: state.individual.enrollmentSummary,
-  enrollmentConfirmationSucceeded: state.individual.enrollmentConfirmationSucceeded,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchIndividualEnrollmentSummary,
   confirmEnrollment,
-  clearEnrollmentConfirmationSuccess,
   clearConfirm,
   coreAlert,
   coreConfirm,

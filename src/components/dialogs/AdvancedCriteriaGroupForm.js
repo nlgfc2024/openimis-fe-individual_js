@@ -12,6 +12,7 @@ import {
   coreAlert,
   coreConfirm,
   clearConfirm,
+  LoadingOverlay,
 } from '@openimis/fe-core';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
@@ -34,7 +35,6 @@ import {
   updateEnrollmentJsonExt,
 } from '../../utils';
 import {
-  clearGroupEnrollmentConfirmationSuccess,
   confirmGroupEnrollment,
   fetchGroupEnrollmentSummary,
 } from '../../actions';
@@ -65,9 +65,8 @@ function AdvancedCriteriaGroupForm({
   fetchedEnrollmentGroupSummary,
   confirmGroupEnrollment,
   confirmed,
-  enrollmentGroupConfirmationSucceeded,
-  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
+  coreAlert,
   coreConfirm,
   rights,
   edited,
@@ -80,6 +79,7 @@ function AdvancedCriteriaGroupForm({
   const [phaseCriteria, setPhaseCriteria] = useState([]);
   const [operatorFilters, setOperatorFilters] = useState([]);
   const [filtersToApply, setFiltersToApply] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
   const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
@@ -199,20 +199,9 @@ function AdvancedCriteriaGroupForm({
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmGroupMessageDialog', { benefitPlanName: object.name }),
       null,
-      'warning',
+      'info',
     );
   };
-
-  useEffect(() => {
-    if (enrollmentGroupConfirmationSucceeded) {
-      coreAlert({
-        title: formatMessage(intl, 'individual', 'individual.enrollment.successTitle'),
-        message: formatMessage(intl, 'individual', 'individual.enrollment.successMessage'),
-        severity: 'success',
-      });
-      clearGroupEnrollmentConfirmationSuccess();
-    }
-  }, [enrollmentGroupConfirmationSucceeded]);
 
   useEffect(() => {
     if (confirmed) {
@@ -229,16 +218,38 @@ function AdvancedCriteriaGroupForm({
         benefitPlanId: `"${decodeId(object.id)}"`,
         status: `"${status}"`,
       };
-      confirmGroupEnrollment(
-        params,
-        formatMessage(intl, 'individual', 'individual.enrollment.mutationLabel'),
-      );
+      const summaryParams = [
+        `customFilters: [${customFilters}]`,
+        `benefitPlanId: "${decodeId(object.id)}"`,
+        `status: "${status}"`,
+      ];
+      setIsSubmitting(true);
+      clearConfirm(false);
+      const submitEnrollment = async () => {
+        const response = await confirmGroupEnrollment(
+          params,
+          formatMessage(intl, 'individual', 'individual.enrollment.mutationLabel'),
+        );
+        const succeeded = Boolean(response) && !response.error && !response?.payload?.errors?.length;
+        if (succeeded) {
+          fetchGroupEnrollmentSummary(summaryParams);
+          setIsSubmitting(false);
+          requestAnimationFrame(() => coreAlert({
+            title: formatMessage(intl, 'individual', 'individual.enrollment.submissionGroupTitle'),
+            message: formatMessage(intl, 'individual', 'individual.enrollment.submissionGroupMessage'),
+            severity: 'success',
+          }));
+        } else {
+          setIsSubmitting(false);
+        }
+      };
+      submitEnrollment();
     }
-    return () => confirmed && clearConfirm(false);
   }, [confirmed]);
 
   return (
     <>
+      <LoadingOverlay open={isSubmitting} label={formatMessage(intl, 'core', 'loading')} />
       {showMandatoryCriteria && phaseCriteria.map((filter, index) => (
         <AdvancedCriteriaRowValue
           customFilters={customFilters}
@@ -395,7 +406,7 @@ function AdvancedCriteriaGroupForm({
               variant="contained"
               color="primary"
               autoFocus
-              disabled={!object || confirmed || enrollmentGroupSummary.willEnrol === 0}
+              disabled={!object || confirmed || isSubmitting || enrollmentGroupSummary.willEnrol === 0}
             >
               {formatMessage(intl, 'individual', 'individual.enrollment.confirmEnrollment')}
             </Button>
@@ -429,14 +440,12 @@ const mapStateToProps = (state, props) => ({
   errorEnrollmentGroupSummary: state.individual.errorEnrollmentGroupSummary,
   fetchedEnrollmentGroupSummary: state.individual.fetchedEnrollmentGroupSummary,
   enrollmentGroupSummary: state.individual.enrollmentGroupSummary,
-  enrollmentGroupConfirmationSucceeded: state.individual.enrollmentGroupConfirmationSucceeded,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
   fetchCustomFilter,
   fetchGroupEnrollmentSummary,
   confirmGroupEnrollment,
-  clearGroupEnrollmentConfirmationSuccess,
   clearConfirm,
   coreAlert,
   coreConfirm,
