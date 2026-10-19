@@ -19,6 +19,11 @@ function GroupsPage(props) {
   const {
     intl, classes, modulesManager, history, rights,
   } = props;
+  const showGroupCreateButton = modulesManager.getConf(
+    'fe-individual',
+    'show_group_create_button',
+    true,
+  );
 
   const onAdd = () => historyPush(
     modulesManager,
@@ -31,7 +36,7 @@ function GroupsPage(props) {
     <div className={classes.page}>
       <Helmet title={formatMessage(intl, 'individual', 'groups.pageTitle')} />
       <GroupSearcher rights={rights} isModalEnrollment={false} />
-      {rights.includes(RIGHT_GROUP_CREATE)
+      {showGroupCreateButton && rights.includes(RIGHT_GROUP_CREATE)
         && withTooltip(
           <div className={classes.fab}>
             <Fab color="primary" onClick={onAdd}>
