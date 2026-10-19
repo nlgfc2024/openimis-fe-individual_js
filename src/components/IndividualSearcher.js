@@ -30,6 +30,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import UndoIcon from '@material-ui/icons/Undo';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import HistoryIcon from '@material-ui/icons/History';
 import {
   fetchIndividuals,
   deleteIndividual,
@@ -97,6 +98,8 @@ function IndividualSearcher({
   const [deletedIndividualUuids, setDeletedIndividualUuids] = useState([]);
   const [undoIndividualUuids, setUndoIndividualUuids] = useState([]);
   const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
+  const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
+  const showUploadHistory = modulesManager.getConf('fe-individual', 'show_upload_history', true);
   const [exportFields, setExportFields] = useState([
     'id',
     'first_name',
@@ -353,6 +356,14 @@ function IndividualSearcher({
       render: ({ className, size }) => (
         <IndividualsUploadDialog renderTrigger={({ onClick, label }) => (
           <SearcherActionButton onClick={onClick} startIcon={<CloudUploadIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
+        )} />
+      ),
+    },
+    {
+      authorized: isModalEnrollment === false && showUploadHistory && !!IndividualsUploadHistoryDialog,
+      render: ({ className, size }) => (
+        <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
+          <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
         )} />
       ),
     },
