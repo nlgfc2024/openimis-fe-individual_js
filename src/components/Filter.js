@@ -99,7 +99,7 @@ function Filter({
         <PublishedComponent
           pubRef="location.DetailedLocationFilter"
           withNull
-          useLocationPickers
+          pickersForAllLevels
           filters={filters}
           onChangeFilters={onChangeFilters}
           anchor="parentLocation"
