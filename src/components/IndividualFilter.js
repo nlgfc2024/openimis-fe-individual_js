@@ -10,10 +10,7 @@ function IndividualFilter({
     { name: 'lastName', label: 'individual.lastName', lookup: CONTAINS_LOOKUP },
   ];
 
-  const checkboxFields = [
-    { name: 'isDeleted', label: 'isDeleted' },
-    { name: 'location_Isnull', label: 'hasNoLocation' },
-  ];
+  const checkboxFields = [];
 
   return (
     <Filter

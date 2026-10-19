@@ -6,13 +6,11 @@ function GroupFilter({
 }) {
   const filterFields = [
     { name: 'code_Icontains', label: 'group.code' },
-    { name: 'firstName', label: 'group.individual.firstName' },
-    { name: 'lastName', label: 'group.individual.lastName' },
+    { name: 'firstName', label: 'individual.firstName' },
+    { name: 'lastName', label: 'individual.lastName' },
   ];
 
-  const checkboxFields = [
-    { name: 'location_Isnull', label: 'hasNoLocation' },
-  ];
+  const checkboxFields = [];
 
   return (
     <Filter

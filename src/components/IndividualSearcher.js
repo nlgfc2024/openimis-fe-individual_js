@@ -30,7 +30,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import UndoIcon from '@material-ui/icons/Undo';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import HistoryIcon from '@material-ui/icons/History';
 import {
   fetchIndividuals,
   deleteIndividual,
@@ -98,7 +97,6 @@ function IndividualSearcher({
   const [deletedIndividualUuids, setDeletedIndividualUuids] = useState([]);
   const [undoIndividualUuids, setUndoIndividualUuids] = useState([]);
   const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
-  const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
   const [exportFields, setExportFields] = useState([
     'id',
     'first_name',
@@ -358,14 +356,6 @@ function IndividualSearcher({
         )} />
       ),
     },
-    {
-      authorized: isModalEnrollment === false && !!IndividualsUploadHistoryDialog,
-      render: ({ className, size }) => (
-        <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
-          <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
-        )} />
-      ),
-    },
   ];
 
   return (
@@ -408,6 +398,7 @@ function IndividualSearcher({
         appliedFiltersRowStructure={appliedFiltersRowStructure}
         setAppliedFiltersRowStructure={setAppliedFiltersRowStructure}
         applyNumberCircle={applyNumberCircle}
+        compactLayout
         cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
