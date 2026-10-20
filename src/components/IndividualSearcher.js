@@ -212,10 +212,10 @@ function IndividualSearcher({
 
     headers.push(...Array.from({ length: LOC_LEVELS }, (_, i) => `location.locationType.${i}`));
 
-    if (rights.includes(RIGHT_INDIVIDUAL_UPDATE)) {
+    if (isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_UPDATE)) {
       headers.push('emptyLabel');
     }
-    if (rights.includes(RIGHT_INDIVIDUAL_DELETE)) {
+    if (isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_DELETE)) {
       headers.push('emptyLabel');
     }
     return headers;
@@ -382,6 +382,14 @@ function IndividualSearcher({
         errorItems={errorIndividuals}
         tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', { individualsTotalCount })}
         headers={headers}
+        columnWidths={[
+          '18%',
+          '18%',
+          '12%',
+          ...Array(LOC_LEVELS).fill(undefined),
+          ...(isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_UPDATE) ? ['48px'] : []),
+          ...(isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['48px'] : []),
+        ]}
         itemFormatters={itemFormatters}
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
