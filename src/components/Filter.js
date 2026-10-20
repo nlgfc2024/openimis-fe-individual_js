@@ -32,10 +32,10 @@ export const useFilterChangeHandler = (onChangeFilters) => {
 };
 
 function FilterTextInput({
-  module, label, value, onChange,
+  module, label, value, onChange, classes,
 }) {
   return (
-    <Grid item xs={2}>
+    <Grid item xs={2} className={classes.item}>
       <TextInput
         module={module}
         label={label}
@@ -79,6 +79,7 @@ function Filter({
           label={field.label}
           value={filters?.[field.name]?.value ?? ''}
           onChange={onChangeStringFilter(field.name, field.lookup)}
+          classes={classes}
         />
       ))}
 
@@ -98,6 +99,7 @@ function Filter({
         <PublishedComponent
           pubRef="location.DetailedLocationFilter"
           withNull
+          pickersForAllLevels
           filters={filters}
           onChangeFilters={onChangeFilters}
           anchor="parentLocation"

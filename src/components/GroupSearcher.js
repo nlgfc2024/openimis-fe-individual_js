@@ -288,6 +288,7 @@ function GroupSearcher({
           },
         ]}
         downloadWithIconButton
+        compactLayout
         cacheFiltersKey="groupsFilterCache"
         resetFiltersOnUnmount
         moduleName={INDIVIDUAL_MODULE_NAME}

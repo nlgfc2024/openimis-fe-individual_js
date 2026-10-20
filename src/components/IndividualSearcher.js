@@ -99,6 +99,7 @@ function IndividualSearcher({
   const [undoIndividualUuids, setUndoIndividualUuids] = useState([]);
   const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
   const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
+  const showUploadHistory = modulesManager.getConf('fe-individual', 'show_upload_history', true);
   const [exportFields, setExportFields] = useState([
     'id',
     'first_name',
@@ -359,7 +360,7 @@ function IndividualSearcher({
       ),
     },
     {
-      authorized: isModalEnrollment === false && !!IndividualsUploadHistoryDialog,
+      authorized: isModalEnrollment === false && showUploadHistory && !!IndividualsUploadHistoryDialog,
       render: ({ className, size }) => (
         <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
           <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
@@ -408,6 +409,7 @@ function IndividualSearcher({
         appliedFiltersRowStructure={appliedFiltersRowStructure}
         setAppliedFiltersRowStructure={setAppliedFiltersRowStructure}
         applyNumberCircle={applyNumberCircle}
+        compactLayout
         cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
