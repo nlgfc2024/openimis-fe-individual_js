@@ -11,7 +11,6 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import {
   apiHeaders,
   baseApiUrl,
-  useModulesManager,
   formatMessage,
   coreAlert,
   FormattedMessage,
@@ -36,7 +35,6 @@ function IndividualsUploadDialog({
   coreAlert,
   renderTrigger,
 }) {
-  const modulesManager = useModulesManager();
   const [isOpen, setIsOpen] = useState(false);
   const [forms, setForms] = useState({});
   const [headers, setHeaders] = useState([]);
@@ -159,10 +157,6 @@ function IndividualsUploadDialog({
     }
   };
 
-  function enrollmentPageUrl() {
-    return `${modulesManager.getRef('individual.route.enrollment')}`;
-  }
-
   const downloadExampleTemplate = () => {
     downloadTemplate();
   };
@@ -174,7 +168,6 @@ function IndividualsUploadDialog({
         label: formatMessage(intl, 'individual', 'individual.upload.buttonLabel'),
       }) : (
         <>
-          <MenuItem><a href={enrollmentPageUrl()} style={{ color: 'inherit', textDecoration: 'none' }}>{formatMessage(intl, 'individual', 'individual.enrollment.buttonLabel')}</a></MenuItem>
           <MenuItem onClick={handleOpen}>{formatMessage(intl, 'individual', 'individual.upload.buttonLabel')}</MenuItem>
           <IndividualsHistoryUploadDialog />
         </>

@@ -10,7 +10,6 @@ import messages_en from './translations/en.json';
 import reducer from './reducer';
 import IndividualsPage from './pages/IndividualsPage';
 import IndividualPage from './pages/IndividualPage';
-import EnrollmentPage from './pages/EnrollmentPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupPage from './pages/GroupPage';
 import { IndividualsListTabLabel, IndividualsListTabPanel } from './components/IndividualsListTab';
@@ -24,6 +23,8 @@ import {
 } from './components/IndividualTaskTab';
 import getBenefitPlansListTab from './contributions/getBenefitPlansListTab';
 import GroupIndividualSearcher from './components/GroupIndividualSearcher';
+import GroupSearcher from './components/GroupSearcher';
+import IndividualSearcher from './components/IndividualSearcher';
 import { clearIndividualExport, downloadIndividuals, fetchIndividuals } from './actions';
 import IndividualHistorySearcher from './components/IndividualHistorySearcher';
 import {
@@ -41,7 +42,9 @@ import {
   GROUP_LABEL,
   INDIVIDUAL_LABEL,
   INDIVIDUAL_MODULE_NAME,
+  RIGHT_GROUP_CREATE,
   RIGHT_GROUP_SEARCH,
+  RIGHT_INDIVIDUAL_CREATE,
   RIGHT_INDIVIDUAL_SEARCH,
 } from './constants';
 import { GroupCreateTaskItemFormatters, GroupCreateTaskTableHeaders } from './components/tasks/GroupCreateTasks';
@@ -53,14 +56,12 @@ import {
   GroupIndividualHistoryTabLabel,
   GroupIndividualHistoryTabPanel,
 } from './components/GroupIndividualHistoryTab';
-import AdvancedCriteriaRowValue from './components/dialogs/AdvancedCriteriaRowValue';
 import IndividualPicker from './pickers/IndividualPicker';
 import {
   GroupUploadConfirmationPanel,
   GroupUploadResolutionItemFormatters,
   GroupUploadResolutionTaskTableHeaders,
 } from './components/tasks/GroupImportTasks';
-import EnrollmentGroupPage from './pages/EnrollmentGroupPage';
 import { BenefitsGroupTabLabel, BenefitsGroupTabPanel } from './components/BenefitsGroupTab';
 import ImportDataApiPage from './pages/ImportDataApiPage';
 
@@ -69,8 +70,6 @@ const ROUTE_INDIVIDUAL = 'individuals/individual';
 const ROUTE_INDIVIDUAL_FROM_GROUP = 'groups/group/individuals/individual';
 const ROUTE_GROUPS = 'groups';
 const ROUTE_GROUP = 'groups/group';
-const ROUTE_ENROLLMENT = 'individuals/enrollment';
-const ROUTE_GROUP_ENROLLMENT = 'groups/enrollment';
 const ROUTE_API_IMPORTS = 'imports';
 
 const BENEFIT_PLAN_TABS_LABEL_REF_KEY = 'socialProtection.BenefitPlansListTabLabel';
@@ -84,8 +83,6 @@ const DEFAULT_CONFIG = {
   'core.Router': [
     { path: ROUTE_INDIVIDUALS, component: IndividualsPage },
     { path: ROUTE_GROUPS, component: GroupsPage },
-    { path: ROUTE_ENROLLMENT, component: EnrollmentPage },
-    { path: ROUTE_GROUP_ENROLLMENT, component: EnrollmentGroupPage },
     { path: `${ROUTE_INDIVIDUAL}/:individual_uuid?`, component: IndividualPage },
     { path: `${ROUTE_INDIVIDUAL_FROM_GROUP}/:individual_uuid?`, component: IndividualPage },
     { path: `${ROUTE_GROUP}/:group_uuid?`, component: GroupPage },
@@ -116,10 +113,10 @@ const DEFAULT_CONFIG = {
   ],
   refs: [
     { key: 'individual.route.individual', ref: ROUTE_INDIVIDUAL },
-    { key: 'individual.route.enrollment', ref: ROUTE_ENROLLMENT },
-    { key: 'individual.route.groupEnrollment', ref: ROUTE_GROUP_ENROLLMENT },
     { key: 'individual.route.group', ref: ROUTE_GROUP },
     { key: 'individual.GroupIndividualSearcher', ref: GroupIndividualSearcher },
+    { key: 'individual.GroupSearcher', ref: GroupSearcher },
+    { key: 'individual.IndividualSearcher', ref: IndividualSearcher },
     { key: 'individual.actions.fetchIndividuals', ref: fetchIndividuals },
     { key: 'individual.actions.downloadIndividuals', ref: downloadIndividuals },
     { key: 'individual.actions.clearIndividualExport', ref: clearIndividualExport },
@@ -128,7 +125,6 @@ const DEFAULT_CONFIG = {
     { key: 'individual.IndividualsUploadDialog', ref: IndividualsUploadDialog },
     { key: 'individual.IndividualsUploadHistoryDialog', ref: IndividualsUploadHistoryDialog },
     { key: 'individual.GroupIndividualHistorySearcher', ref: GroupIndividualHistorySearcher },
-    { key: 'individual.AdvancedCriteriaRowValue', ref: AdvancedCriteriaRowValue },
     { key: 'individual.IndividualPicker', ref: IndividualPicker },
   ],
   'individual.TabPanel.label': [
@@ -192,20 +188,11 @@ const DEFAULT_CONFIG = {
   ],
 };
 
-const DEFAULT_ENROLLMENT_UI = {
-  show_mandatory_criteria_summary: true,
-  show_advanced_operator_filters: true,
-  show_enrollment_guidance: false,
-};
+export const IndividualModule = (cfg) => ({ ...DEFAULT_CONFIG, ...cfg });
 
-export const IndividualModule = (cfg = {}) => ({
-  ...DEFAULT_CONFIG,
-  ...cfg,
-  refs: [
-    ...DEFAULT_CONFIG.refs,
-    {
-      key: 'individual.enrollmentUiConfig',
-      ref: { ...DEFAULT_ENROLLMENT_UI, ...(cfg.enrollment_ui || {}) },
-    },
-  ],
-});
+export {
+  GroupSearcher,
+  IndividualSearcher,
+  RIGHT_GROUP_CREATE,
+  RIGHT_INDIVIDUAL_CREATE,
+};
