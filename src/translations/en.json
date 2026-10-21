@@ -10,7 +10,7 @@
   "dialog.update": "Save",
   "dialog.cancel": "Cancel",
   "menu.individuals": "Individuals",
-  "menu.groups": "Groups",
+  "menu.groups": "Households",
   "menu.api": "Import Data - API",
   "individual.pageTitle": "Individual {firstName} {lastName}",
   "individual.headPanelTitle": "General Information",
