@@ -128,6 +128,8 @@ function GroupSearcher({
   });
 
   const fetch = (params) => fetchGroups(modulesManager, params);
+  const canManageGroups = isModalEnrollment === false
+    && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE));
 
   const headers = () => {
     const headers = [
@@ -137,7 +139,7 @@ function GroupSearcher({
 
     headers.push(...Array.from({ length: LOC_LEVELS }, (_, i) => `location.locationType.${i}`));
 
-    if (isModalEnrollment === false && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE))) {
+    if (canManageGroups) {
       headers.push('emptyLabel');
     }
     return headers;
@@ -156,7 +158,7 @@ function GroupSearcher({
     ));
     formatters.push(...locations);
 
-    if (isModalEnrollment === false && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE))) {
+    if (canManageGroups) {
       formatters.push((group) => (
         <span style={{ display: 'inline-flex', whiteSpace: 'nowrap' }}>
           {rights.includes(RIGHT_GROUP_UPDATE) && (
@@ -265,7 +267,7 @@ function GroupSearcher({
           '14%',
           '22%',
           ...Array(LOC_LEVELS).fill(undefined),
-          ...(isModalEnrollment === false && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE)) ? ['112px'] : []),
+          ...(canManageGroups ? ['112px'] : []),
         ]}
         itemFormatters={itemFormatters}
         sorts={sorts}
