@@ -40,12 +40,8 @@ export const ACTION_TYPE = {
   SEARCH_GROUP_HISTORY: 'SEARCH_GROUP_HISTORY',
   SET_GROUP_INDIVIDUAL: 'SET_GROUP_INDIVIDUAL',
   GET_WORKFLOWS: 'GET_WORKFLOWS',
-  ENROLLMENT_SUMMARY: 'ENROLLMENT_SUMMARY',
-  CONFIRM_ENROLLMENT: 'CONFIRM_ENROLLMENT',
   GET_INDIVIDUAL_UPLOAD_HISTORY: 'GET_INDIVIDUAL_UPLOAD_HISTORY',
   SEARCH_GROUP_INDIVIDUAL_HISTORY: 'SEARCH_GROUP_INDIVIDUAL_HISTORY',
-  ENROLLMENT_GROUP_SUMMARY: 'ENROLLMENT_GROUP_SUMMARY',
-  CONFIRM_GROUP_ENROLLMENT: 'CONFIRM_GROUP_ENROLLMENT',
   GET_PENDING_GROUPS_UPLOAD: 'GET_PENDING_GROUPS_UPLOAD',
   RESOLVE_TASK: 'TASK_MANAGEMENT_RESOLVE_TASK',
   API_ETL_SERVICES: 'API_ETL_SERVICES',
@@ -116,11 +112,6 @@ function reducer(
     workflowsPageInfo: {},
     workflowsGroupBeneficiaries: null,
     errorWorkflows: null,
-    enrollmentSummary: [],
-    enrollmentSummaryError: null,
-    fetchingEnrollmentSummary: true,
-    fetchedEnrollmentSummary: false,
-
     fetchingIndividualDataUploadHistory: true,
     fetchedIndividualDataUploadHistory: false,
     individualDataUploadHistory: [],
@@ -133,11 +124,6 @@ function reducer(
     groupIndividualHistory: [],
     groupIndividualHistoryPageInfo: {},
     groupIndividualHistoryTotalCount: 0,
-
-    enrollmentGroupSummary: [],
-    enrollmentGroupSummaryError: null,
-    fetchingEnrollmentGroupSummary: true,
-    fetchedEnrollmentGroupSummary: false,
 
     pendingGroups: [],
     fetchingPendingGroups: true,
@@ -546,50 +532,6 @@ function reducer(
         ...state,
         fetchingWorkflows: false,
         errorWorkflows: formatServerError(action.payload),
-      };
-    case REQUEST(ACTION_TYPE.ENROLLMENT_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentSummary: true,
-        fetchedEnrollmentSummary: false,
-        enrollmentSummary: {},
-        enrollmentSummaryError: null,
-      };
-    case SUCCESS(ACTION_TYPE.ENROLLMENT_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentSummary: false,
-        fetchedEnrollmentSummary: true,
-        enrollmentSummary: action.payload.data.individualEnrollmentSummary,
-        enrollmentSummaryError: formatGraphQLError(action.payload),
-      };
-    case ERROR(ACTION_TYPE.ENROLLMENT_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentSummary: false,
-        enrollmentSummaryError: formatServerError(action.payload),
-      };
-    case REQUEST(ACTION_TYPE.ENROLLMENT_GROUP_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentGroupSummary: true,
-        fetchedEnrollmentGroupSummary: false,
-        enrollmentGroupSummary: {},
-        enrollmentGroupSummaryError: null,
-      };
-    case SUCCESS(ACTION_TYPE.ENROLLMENT_GROUP_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentGroupSummary: false,
-        fetchedEnrollmentGroupSummary: true,
-        enrollmentGroupSummary: action.payload.data.groupEnrollmentSummary,
-        enrollmentGroupSummaryError: formatGraphQLError(action.payload),
-      };
-    case ERROR(ACTION_TYPE.ENROLLMENT_GROUP_SUMMARY):
-      return {
-        ...state,
-        fetchingEnrollmentGroupSummary: false,
-        enrollmentGroupSummaryError: formatServerError(action.payload),
       };
     case REQUEST(ACTION_TYPE.GET_INDIVIDUAL_UPLOAD_HISTORY):
       return {

@@ -11,7 +11,6 @@ import {
   coreConfirm,
   clearConfirm,
   journalize,
-  decodeId,
 } from '@openimis/fe-core';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -24,7 +23,6 @@ import {
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import {
   deleteGroup, downloadGroups, fetchGroups, clearGroupExport,
 } from '../actions';
@@ -60,15 +58,15 @@ function GroupSearcher({
   confirmed,
   submittingMutation,
   clearGroupExport,
-  isModalEnrollment,
+  readOnly = false,
   mutation,
   coreConfirm,
   clearConfirm,
   journalize,
   CLEARED_STATE_FILTER,
-  benefitPlanToEnroll,
-  advancedCriteria,
-  enrollmentPreviewStatus,
+  additionalQueryFilters = {},
+  queryName = 'group',
+  preserveBackendOrder = false,
 }) {
   const [groupToDelete, setGroupToDelete] = useState(null);
   const [deletedGroupUuids, setDeletedGroupUuids] = useState([]);
@@ -79,10 +77,6 @@ function GroupSearcher({
   function groupUpdatePageUrl(group) {
     return `${modulesManager.getRef('individual.route.group')}/${group?.id}`;
   }
-
-  const openGroupEnrollment = () => historyPush(
-    modulesManager, history, 'individual.route.groupEnrollment',
-  );
 
   const openDeleteGroupConfirmDialog = () => coreConfirm(
     formatMessageWithValues(intl, 'individual', 'group.delete.confirm.title', {
@@ -127,8 +121,12 @@ function GroupSearcher({
     prevSubmittingMutationRef.current = submittingMutation;
   });
 
-  const fetch = (params) => fetchGroups(modulesManager, params);
-  const canManageGroups = isModalEnrollment === false
+  const fetch = (params) => fetchGroups(
+    modulesManager,
+    preserveBackendOrder ? params.filter((param) => !/^\s*orderBy\s*:/.test(param)) : params,
+    queryName,
+  );
+  const canManageGroups = !readOnly
     && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE));
 
   const headers = () => {
@@ -189,8 +187,7 @@ function GroupSearcher({
 
   const rowIdentifier = (group) => group.id;
 
-  // Enrollment previews preserve the backend's deterministic ranking order.
-  const sorts = () => (isModalEnrollment ? [] : [
+  const sorts = () => ([
     ['id', false],
   ]);
 
@@ -203,23 +200,7 @@ function GroupSearcher({
         filter: 'isDeleted: false',
       },
     };
-    if (isModalEnrollment && advancedCriteria !== null && advancedCriteria !== undefined) {
-      filters.customFilters = {
-        value: advancedCriteria,
-        filter: `customFilters: [${advancedCriteria}]`,
-      };
-      filters.benefitPlanToEnroll = {
-        value: benefitPlanToEnroll,
-        filter: `benefitPlanToEnroll: "${decodeId(benefitPlanToEnroll)}"`,
-      };
-      if (enrollmentPreviewStatus) {
-        filters.enrollmentPreviewStatus = {
-          value: enrollmentPreviewStatus,
-          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
-        };
-      }
-    }
-    return filters;
+    return { ...filters, ...additionalQueryFilters };
   };
 
   const [failedExport, setFailedExport] = useState(false);
@@ -270,10 +251,10 @@ function GroupSearcher({
           ...(canManageGroups ? ['112px'] : []),
         ]}
         itemFormatters={itemFormatters}
-        sorts={sorts}
+        sorts={preserveBackendOrder ? undefined : sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy={isModalEnrollment ? undefined : 'id'}
+        defaultOrderBy={preserveBackendOrder ? undefined : 'id'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
@@ -288,15 +269,6 @@ function GroupSearcher({
         }}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         enableHeaderActionButtons
-        searcherActions={[
-          {
-            label: formatMessage(intl, 'individual', 'groups.action.enrollment'),
-            icon: <GroupAddIcon />,
-            authorized: isModalEnrollment === false,
-            variant: 'contained',
-            onClick: openGroupEnrollment,
-          },
-        ]}
         downloadWithIconButton
         compactLayout
         cacheFiltersKey="groupsFilterCache"
@@ -312,7 +284,7 @@ function GroupSearcher({
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
-        {...(isModalEnrollment === false ? {
+        {...(!readOnly ? {
           actionsContributionKey: INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY, isCustomFiltering: true,
         } : { isCustomFiltering: false })}
       />

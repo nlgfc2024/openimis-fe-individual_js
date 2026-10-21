@@ -22,34 +22,6 @@ const WORKFLOWS_FULL_PROJECTION = () => [
   'group',
 ];
 
-const ENROLLMENT_SUMMARY_FULL_PROJECTION = () => [
-  'totalNumberOfIndividuals',
-  'numberOfSelectedIndividuals',
-  'numberOfIndividualsAssignedToProgramme',
-  'numberOfIndividualsNotAssignedToProgramme',
-  'numberOfIndividualsAssignedToSelectedProgramme',
-  'numberOfIndividualsToUpload',
-  'poolSize',
-  'capApplied',
-  'willEnrol',
-  'enrolmentRanking',
-  'percentage',
-];
-
-const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
-  'totalNumberOfGroups',
-  'numberOfSelectedGroups',
-  'numberOfGroupsAssignedToProgramme',
-  'numberOfGroupsNotAssignedToProgramme',
-  'numberOfGroupsAssignedToSelectedProgramme',
-  'numberOfGroupsToUpload',
-  'poolSize',
-  'capApplied',
-  'willEnrol',
-  'enrolmentRanking',
-  'percentage',
-];
-
 export function fetchWorkflows() {
   const payload = formatQuery(
     'workflow',
@@ -147,26 +119,8 @@ export function fetchApiEtlServices() {
   );
 }
 
-export function fetchIndividualEnrollmentSummary(params) {
-  const payload = formatQuery(
-    'individualEnrollmentSummary',
-    params,
-    ENROLLMENT_SUMMARY_FULL_PROJECTION(),
-  );
-  return graphql(payload, ACTION_TYPE.ENROLLMENT_SUMMARY);
-}
-
-export function fetchGroupEnrollmentSummary(params) {
-  const payload = formatQuery(
-    'groupEnrollmentSummary',
-    params,
-    ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION(),
-  );
-  return graphql(payload, ACTION_TYPE.ENROLLMENT_GROUP_SUMMARY);
-}
-
-export function fetchIndividuals(mm, params) {
-  const payload = formatPageQueryWithCount('individual', params, INDIVIDUAL_FULL_PROJECTION(mm));
+export function fetchIndividuals(mm, params, queryName = 'individual') {
+  const payload = formatPageQueryWithCount(queryName, params, INDIVIDUAL_FULL_PROJECTION(mm));
   return graphql(payload, ACTION_TYPE.SEARCH_INDIVIDUALS);
 }
 
@@ -175,8 +129,8 @@ export function fetchGroupIndividuals(params) {
   return graphql(payload, ACTION_TYPE.SEARCH_GROUP_INDIVIDUALS);
 }
 
-export function fetchGroups(mm, params) {
-  const payload = formatPageQueryWithCount('group', params, GROUP_FULL_PROJECTION(mm));
+export function fetchGroups(mm, params, queryName = 'group') {
+  const payload = formatPageQueryWithCount(queryName, params, GROUP_FULL_PROJECTION(mm));
   return graphql(payload, ACTION_TYPE.SEARCH_GROUPS);
 }
 
@@ -326,13 +280,6 @@ function formatCreateGroupIndividualGQL(groupIndividual) {
     ${groupIndividual?.group.id ? `groupId: "${groupIndividual.group.id}"` : ''}`;
 }
 
-function formatConfirmEnrollmentGQL(params) {
-  return `
-    ${params?.customFilters ? `customFilters: ${params.customFilters}` : ''}
-    ${params?.benefitPlanId ? `benefitPlanId: ${params.benefitPlanId}` : ''}
-    ${params?.status ? `status: ${params.status}` : ''}`;
-}
-
 export function updateIndividual(individual, clientMutationLabel) {
   const mutation = formatMutation('updateIndividual', formatIndividualGQL(individual), clientMutationLabel);
   const requestedDateTime = new Date();
@@ -341,38 +288,6 @@ export function updateIndividual(individual, clientMutationLabel) {
     [REQUEST(ACTION_TYPE.MUTATION), SUCCESS(ACTION_TYPE.UPDATE_INDIVIDUAL), ERROR(ACTION_TYPE.MUTATION)],
     {
       actionType: ACTION_TYPE.UPDATE_INDIVIDUAL,
-      clientMutationId: mutation.clientMutationId,
-      clientMutationLabel,
-      requestedDateTime,
-    },
-  );
-}
-
-export function confirmEnrollment(params, clientMutationLabel) {
-  // eslint-disable-next-line max-len
-  const mutation = formatMutation('confirmIndividualEnrollment', formatConfirmEnrollmentGQL(params), clientMutationLabel);
-  const requestedDateTime = new Date();
-  return graphql(
-    mutation.payload,
-    [REQUEST(ACTION_TYPE.MUTATION), SUCCESS(ACTION_TYPE.CONFIRM_ENROLLMENT), ERROR(ACTION_TYPE.MUTATION)],
-    {
-      actionType: ACTION_TYPE.UPDATE_INDIVIDUAL,
-      clientMutationId: mutation.clientMutationId,
-      clientMutationLabel,
-      requestedDateTime,
-    },
-  );
-}
-
-export function confirmGroupEnrollment(params, clientMutationLabel) {
-  // eslint-disable-next-line max-len
-  const mutation = formatMutation('confirmGroupEnrollment', formatConfirmEnrollmentGQL(params), clientMutationLabel);
-  const requestedDateTime = new Date();
-  return graphql(
-    mutation.payload,
-    [REQUEST(ACTION_TYPE.MUTATION), SUCCESS(ACTION_TYPE.CONFIRM_GROUP_ENROLLMENT), ERROR(ACTION_TYPE.MUTATION)],
-    {
-      actionType: ACTION_TYPE.UPDATE_GROUP,
       clientMutationId: mutation.clientMutationId,
       clientMutationLabel,
       requestedDateTime,

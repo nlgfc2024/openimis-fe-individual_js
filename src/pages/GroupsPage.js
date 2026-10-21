@@ -35,7 +35,7 @@ function GroupsPage(props) {
     rights.includes(RIGHT_GROUP_SEARCH) && (
     <div className={classes.page}>
       <Helmet title={formatMessage(intl, 'individual', 'groups.pageTitle')} />
-      <GroupSearcher rights={rights} isModalEnrollment={false} />
+      <GroupSearcher rights={rights} />
       {showGroupCreateButton && rights.includes(RIGHT_GROUP_CREATE)
         && withTooltip(
           <div className={classes.fab}>
