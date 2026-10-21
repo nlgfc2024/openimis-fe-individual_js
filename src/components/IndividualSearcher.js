@@ -14,7 +14,6 @@ import {
   historyPush,
   downloadExport,
   CLEARED_STATE_FILTER,
-  decodeId,
 } from '@openimis/fe-core';
 import { bindActionCreators } from 'redux';
 import { connect, useDispatch } from 'react-redux';
@@ -28,7 +27,6 @@ import {
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import UndoIcon from '@material-ui/icons/Undo';
-import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import HistoryIcon from '@material-ui/icons/History';
 import {
@@ -84,10 +82,10 @@ function IndividualSearcher({
   fieldsFromBfSchema,
   fetchingFieldsFromBfSchema,
   fetchedFieldsFromBfSchema,
-  isModalEnrollment,
-  advancedCriteria,
-  enrollmentPreviewStatus,
-  benefitPlanToEnroll,
+  readOnly = false,
+  additionalQueryFilters = {},
+  queryName = 'individual',
+  preserveBackendOrder = false,
   undoDeleteIndividual,
 }) {
   const dispatch = useDispatch();
@@ -201,7 +199,11 @@ function IndividualSearcher({
     prevSubmittingMutationRef.current = submittingMutation;
   });
 
-  const fetch = (params) => fetchIndividuals(modulesManager, params);
+  const fetch = (params) => fetchIndividuals(
+    modulesManager,
+    preserveBackendOrder ? params.filter((param) => !/^\s*orderBy\s*:/.test(param)) : params,
+    queryName,
+  );
 
   const headers = () => {
     const headers = [
@@ -212,10 +214,10 @@ function IndividualSearcher({
 
     headers.push(...Array.from({ length: LOC_LEVELS }, (_, i) => `location.locationType.${i}`));
 
-    if (isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_UPDATE)) {
+    if (!readOnly && rights.includes(RIGHT_INDIVIDUAL_UPDATE)) {
       headers.push('emptyLabel');
     }
-    if (isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_DELETE)) {
+    if (!readOnly && rights.includes(RIGHT_INDIVIDUAL_DELETE)) {
       headers.push('emptyLabel');
     }
     return headers;
@@ -233,7 +235,7 @@ function IndividualSearcher({
     ));
     formatters.push(...locations);
 
-    if (rights.includes(RIGHT_INDIVIDUAL_UPDATE) && isModalEnrollment === false) {
+    if (rights.includes(RIGHT_INDIVIDUAL_UPDATE) && !readOnly) {
       formatters.push((individual) => (
         <Tooltip title={formatMessage(intl, 'individual', 'editButtonTooltip')}>
           <IconButton
@@ -246,7 +248,7 @@ function IndividualSearcher({
         </Tooltip>
       ));
     }
-    if (rights.includes(RIGHT_INDIVIDUAL_DELETE) && isModalEnrollment === false) {
+    if (rights.includes(RIGHT_INDIVIDUAL_DELETE) && !readOnly) {
       formatters.push((individual) => (!individual?.isDeleted ? (
         <Tooltip title={formatMessage(intl, INDIVIDUAL_MODULE_NAME, 'deleteButtonTooltip')}>
           <IconButton
@@ -272,8 +274,7 @@ function IndividualSearcher({
 
   const rowIdentifier = (individual) => individual.id;
 
-  // Enrollment previews preserve the backend's deterministic ranking order.
-  const sorts = () => (isModalEnrollment ? [] : [
+  const sorts = () => ([
     ['firstName', true],
     ['lastName', true],
     ['dob', true],
@@ -312,47 +313,16 @@ function IndividualSearcher({
         filter: `groupId: "${groupId}"`,
       };
     }
-    if (isModalEnrollment && advancedCriteria !== null && advancedCriteria !== undefined) {
-      filters.customFilters = {
-        value: advancedCriteria,
-        filter: `customFilters: [${advancedCriteria}]`,
-      };
-      filters.benefitPlanToEnroll = {
-        value: benefitPlanToEnroll,
-        filter: `benefitPlanToEnroll: "${decodeId(benefitPlanToEnroll)}"`,
-      };
-      filters.filterNotAttachedToGroup = {
-        value: true,
-        filter: 'filterNotAttachedToGroup: true',
-      };
-      if (enrollmentPreviewStatus) {
-        filters.enrollmentPreviewStatus = {
-          value: enrollmentPreviewStatus,
-          filter: `enrollmentPreviewStatus: "${enrollmentPreviewStatus}"`,
-        };
-      }
-    }
-    return filters;
+    return { ...filters, ...additionalQueryFilters };
   };
 
   useEffect(() => {
     // refresh when appliedCustomFilters is changed
   }, [appliedCustomFilters]);
 
-  const openIndividualEnrollment = () => historyPush(
-    modulesManager, history, 'individual.route.enrollment',
-  );
-
   const searcherActions = [
     {
-      label: formatMessage(intl, 'individual', 'individual.enrollment.buttonLabel'),
-      icon: <PersonAddIcon />,
-      authorized: isModalEnrollment === false,
-      variant: 'contained',
-      onClick: openIndividualEnrollment,
-    },
-    {
-      authorized: isModalEnrollment === false && !!IndividualsUploadDialog,
+      authorized: !readOnly && !!IndividualsUploadDialog,
       render: ({ className, size }) => (
         <IndividualsUploadDialog renderTrigger={({ onClick, label }) => (
           <SearcherActionButton onClick={onClick} startIcon={<CloudUploadIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
@@ -360,7 +330,7 @@ function IndividualSearcher({
       ),
     },
     {
-      authorized: isModalEnrollment === false && showUploadHistory && !!IndividualsUploadHistoryDialog,
+      authorized: !readOnly && showUploadHistory && !!IndividualsUploadHistoryDialog,
       render: ({ className, size }) => (
         <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
           <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
@@ -387,14 +357,14 @@ function IndividualSearcher({
           '18%',
           '12%',
           ...Array(LOC_LEVELS).fill(undefined),
-          ...(isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_UPDATE) ? ['48px'] : []),
-          ...(isModalEnrollment === false && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['48px'] : []),
+          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_UPDATE) ? ['48px'] : []),
+          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['48px'] : []),
         ]}
         itemFormatters={itemFormatters}
-        sorts={sorts}
+        sorts={preserveBackendOrder ? undefined : sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy={isModalEnrollment ? undefined : 'lastName'}
+        defaultOrderBy={preserveBackendOrder ? undefined : 'lastName'}
         rowIdentifier={rowIdentifier}
         onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
@@ -421,7 +391,7 @@ function IndividualSearcher({
         cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
-        {...(isModalEnrollment === false ? {
+        {...(!readOnly ? {
           actionsContributionKey: INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY, isCustomFiltering: true,
         } : { isCustomFiltering: false })}
       />
