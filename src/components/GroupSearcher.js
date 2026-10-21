@@ -128,6 +128,8 @@ function GroupSearcher({
   });
 
   const fetch = (params) => fetchGroups(modulesManager, params);
+  const canManageGroups = isModalEnrollment === false
+    && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE));
 
   const headers = () => {
     const headers = [
@@ -137,7 +139,7 @@ function GroupSearcher({
 
     headers.push(...Array.from({ length: LOC_LEVELS }, (_, i) => `location.locationType.${i}`));
 
-    if (rights.includes(RIGHT_GROUP_UPDATE)) {
+    if (canManageGroups) {
       headers.push('emptyLabel');
     }
     return headers;
@@ -156,28 +158,30 @@ function GroupSearcher({
     ));
     formatters.push(...locations);
 
-    if (rights.includes(RIGHT_GROUP_UPDATE) && isModalEnrollment === false) {
+    if (canManageGroups) {
       formatters.push((group) => (
-        <Tooltip title={formatMessage(intl, 'individual', 'editButtonTooltip')}>
-          <IconButton
-            href={groupUpdatePageUrl(group)}
-            onClick={(e) => e.stopPropagation() && onDoubleClick(group)}
-          >
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
-      ));
-    }
-    if (rights.includes(RIGHT_GROUP_DELETE) && isModalEnrollment === false) {
-      formatters.push((group) => (
-        <Tooltip title={formatMessage(intl, 'individual', 'deleteButtonTooltip')}>
-          <IconButton
-            onClick={() => onDelete(group)}
-            disabled={deletedGroupUuids.includes(group.id)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+        <span style={{ display: 'inline-flex', whiteSpace: 'nowrap' }}>
+          {rights.includes(RIGHT_GROUP_UPDATE) && (
+            <Tooltip title={formatMessage(intl, 'individual', 'editButtonTooltip')}>
+              <IconButton
+                href={groupUpdatePageUrl(group)}
+                onClick={(e) => e.stopPropagation() && onDoubleClick(group)}
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          {rights.includes(RIGHT_GROUP_DELETE) && (
+            <Tooltip title={formatMessage(intl, 'individual', 'deleteButtonTooltip')}>
+              <IconButton
+                onClick={() => onDelete(group)}
+                disabled={deletedGroupUuids.includes(group.id)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </span>
       ));
     }
     return formatters;
@@ -259,6 +263,12 @@ function GroupSearcher({
           groupsTotalCount,
         })}
         headers={headers}
+        columnWidths={[
+          '14%',
+          '22%',
+          ...Array(LOC_LEVELS).fill(undefined),
+          ...(canManageGroups ? ['112px'] : []),
+        ]}
         itemFormatters={itemFormatters}
         sorts={sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
