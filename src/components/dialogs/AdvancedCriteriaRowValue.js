@@ -11,6 +11,7 @@ import {
   SelectInput,
   CustomFilterTypeStatusPicker,
   CustomFilterFieldStatusPicker,
+  formatMessage,
 } from '@openimis/fe-core';
 import { Grid } from '@material-ui/core';
 import { withTheme, withStyles } from '@material-ui/core/styles';
@@ -167,6 +168,15 @@ function AdvancedCriteriaRowValue({
       </Grid>
       {currentFilter.field !== '' ? (
         <Grid item xs={3} className={classes.item}>
+          {currentFilter.field === 'district_id' ? (
+            <SelectInput
+              module="paymentPlan"
+              label="paymentPlan.advancedCriteria.filter"
+              value="exact"
+              options={[{ value: 'exact', label: formatMessage(intl, 'core', 'advancedFilters.districtEquals') }]}
+              readOnly
+            />
+          ) : (
           <CustomFilterTypeStatusPicker
             module="paymentPlan"
             label="paymentPlan.advancedCriteria.filter"
@@ -174,8 +184,9 @@ function AdvancedCriteriaRowValue({
             onChange={onAttributeChange('filter')}
             customFilters={customFilters}
             customFilterField={currentFilter.field}
-            readOnly={readOnly || currentFilter.field === 'district_id'}
+            readOnly={readOnly}
           />
+          )}
         </Grid>
       ) : (<></>) }
       {currentFilter.field !== '' && currentFilter.filter !== '' ? (
