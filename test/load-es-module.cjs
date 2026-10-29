@@ -4,7 +4,7 @@ const babel = require('@babel/core');
 module.exports = function loadEsModule(path, mocks = {}) {
   const source = fs.readFileSync(path, 'utf8');
   const { code } = babel.transformSync(source, {
-    presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+    presets: [['@babel/preset-env', { targets: { node: 'current' } }], '@babel/preset-react'],
   });
   const module = { exports: {} };
   const evaluate = new Function('module', 'exports', 'require', `${code}\n//# sourceURL=${path}`);

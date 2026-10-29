@@ -15,6 +15,7 @@ import {
 import { Grid } from '@material-ui/core';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
+import EnrollmentDistrictPicker from './EnrollmentDistrictPicker';
 import {
   BOOLEAN,
   INTEGER,
@@ -56,6 +57,7 @@ function AdvancedCriteriaRowValue({
       ...updatedFilter,
       [attribute]: attributeValue,
       ...(attribute === 'filter' && { value: '' }),
+      ...(attribute === 'field' && value.field === 'district_id' && { type: INTEGER, filter: 'exact' }),
     };
 
     setCurrentFilter(updatedFilter);
@@ -80,6 +82,16 @@ function AdvancedCriteriaRowValue({
       value: currentFilter.value,
       onChange: onAttributeChange('value'),
     };
+
+    if (currentFilter.field === 'district_id') {
+      return (
+        <EnrollmentDistrictPicker
+          value={currentFilter.value}
+          onChange={onAttributeChange('value')}
+          readOnly={readOnly}
+        />
+      );
+    }
 
     switch (type) {
       case BOOLEAN:
@@ -162,7 +174,7 @@ function AdvancedCriteriaRowValue({
             onChange={onAttributeChange('filter')}
             customFilters={customFilters}
             customFilterField={currentFilter.field}
-            readOnly={readOnly}
+            readOnly={readOnly || currentFilter.field === 'district_id'}
           />
         </Grid>
       ) : (<></>) }

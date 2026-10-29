@@ -1,4 +1,15 @@
-import { baseApiUrl } from '@openimis/fe-core';
+import { baseApiUrl, decodeId } from '@openimis/fe-core';
+
+export function districtLocationId(value) {
+  if (value === '' || value === null || value === undefined) return null;
+  const text = String(value);
+  let decoded = text;
+  if (!/^[1-9][0-9]*$/.test(text)) {
+    try { decoded = String(decodeId(text)); } catch (error) { return null; }
+  }
+  const id = Number(decoded);
+  return /^[1-9][0-9]*$/.test(decoded) && Number.isSafeInteger(id) && id <= 2147483647 ? id : null;
+}
 
 export function isBase64Encoded(str) {
   // Base64 encoded strings can only contain characters from [A-Za-z0-9+/=]
