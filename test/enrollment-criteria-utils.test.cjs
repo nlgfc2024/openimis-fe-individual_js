@@ -24,6 +24,24 @@ const operatorCriterion = {
   field: 'number_of_children', filter: 'gte', type: 'integer', value: 3,
 };
 
+test('optional district is omitted when empty and round-trips when selected', () => {
+  const district = { field: 'district_id', filter: 'exact', type: 'integer' };
+  for (const value of ['', null, undefined]) {
+    assert.deepEqual(enrollmentOperatorConditions([{ ...district, value }]), []);
+  }
+  const conditions = enrollmentOperatorConditions([{ ...district, value: 123 }]);
+  assert.deepEqual(conditions, ['district_id__exact__integer=123']);
+  const saved = updateEnrollmentJsonExt('{}', 'ACTIVE', conditions);
+  const restored = normalizeAdvancedCriteria(JSON.parse(saved).advanced_criteria).ACTIVE;
+  assert.deepEqual(enrollmentOperatorConditions(restored), conditions);
+  assert.deepEqual(enrollmentOperatorConditions([]), []);
+  assert.deepEqual(enrollmentOperatorConditions([
+    { ...phaseCriterion, locked: true },
+    { field: 'count', filter: 'exact', type: 'integer', value: 0 },
+    { field: 'flag', filter: 'exact', type: 'boolean', value: false },
+  ]), ['count__exact__integer=0', 'flag__exact__boolean=false']);
+});
+
 test('normalizes canonical and legacy criteria representations', () => {
   const legacy = [{ custom_filter_condition: 'age__gte__integer=18' }];
   assert.deepEqual(normalizeAdvancedCriteria(legacy), {

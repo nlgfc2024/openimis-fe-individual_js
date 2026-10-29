@@ -82,6 +82,8 @@ export function normalizeAdvancedCriteria(value) {
 export function toCustomFilterConditions(filters) {
   return filters
     .filter((filter) => !filter.locked && filter.field && filter.filter && filter.type)
+    .filter((filter) => filter.field !== 'district_id'
+      || (filter.value !== '' && filter.value !== null && filter.value !== undefined))
     .map((filter) => {
       const value = filter.type === 'string'
         ? JSON.stringify(String(filter.value ?? ''))
