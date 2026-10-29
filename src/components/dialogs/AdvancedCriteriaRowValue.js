@@ -177,15 +177,15 @@ function AdvancedCriteriaRowValue({
               readOnly
             />
           ) : (
-          <CustomFilterTypeStatusPicker
-            module="paymentPlan"
-            label="paymentPlan.advancedCriteria.filter"
-            value={currentFilter.filter}
-            onChange={onAttributeChange('filter')}
-            customFilters={customFilters}
-            customFilterField={currentFilter.field}
-            readOnly={readOnly}
-          />
+            <CustomFilterTypeStatusPicker
+              module="paymentPlan"
+              label="paymentPlan.advancedCriteria.filter"
+              value={currentFilter.filter}
+              onChange={onAttributeChange('filter')}
+              customFilters={customFilters}
+              customFilterField={currentFilter.field}
+              readOnly={readOnly}
+            />
           )}
         </Grid>
       ) : (<></>) }
