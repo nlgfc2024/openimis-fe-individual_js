@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable camelcase */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { injectIntl } from 'react-intl';
 import Button from '@material-ui/core/Button';
 import { Divider, Grid, Paper } from '@material-ui/core';
@@ -40,6 +40,7 @@ import {
 } from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
 import EnrollmentRankingSummary from './EnrollmentRankingSummary';
+import useEnrollmentPreview from './useEnrollmentPreview';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -61,8 +62,6 @@ function AdvancedCriteriaGroupForm({
   updateAttributes,
   additionalParams,
   fetchGroupEnrollmentSummary,
-  enrollmentGroupSummary,
-  fetchedEnrollmentGroupSummary,
   confirmGroupEnrollment,
   confirmed,
   clearConfirm,
@@ -83,6 +82,10 @@ function AdvancedCriteriaGroupForm({
   const status = edited?.status;
   const showMandatoryCriteria = enrollmentUi?.show_mandatory_criteria_summary ?? true;
   const showOperatorFilters = enrollmentUi?.show_advanced_operator_filters ?? true;
+  const previewKey = JSON.stringify([object?.id, status, phaseCriteria, operatorFilters, showOperatorFilters]);
+  const preview = useEnrollmentPreview(previewKey);
+  const enrollmentGroupSummary = preview.summary;
+  const confirmationKey = useRef(null);
 
   const getBenefitPlanDefaultCriteria = () => {
     const jsonData = safeParseJsonObject(edited?.benefitPlan?.jsonExt);
@@ -166,7 +169,7 @@ function AdvancedCriteriaGroupForm({
       `benefitPlanId: "${decodeId(object.id)}"`,
       `status: "${status}"`,
     ];
-    fetchGroupEnrollmentSummary(params);
+    preview.load(() => fetchGroupEnrollmentSummary(params));
     handleClose();
   };
 
@@ -195,6 +198,8 @@ function AdvancedCriteriaGroupForm({
   useEffect(() => {}, [filters]);
 
   const openConfirmEnrollmentDialog = () => {
+    if (!preview.summary || preview.loading) return;
+    confirmationKey.current = previewKey;
     coreConfirm(
       formatMessage(intl, 'individual', 'individual.enrollment.confirmTitle'),
       formatMessageWithValues(intl, 'individual', 'individual.enrollment.confirmGroupMessageDialog', { benefitPlanName: object.name }),
@@ -205,6 +210,10 @@ function AdvancedCriteriaGroupForm({
 
   useEffect(() => {
     if (confirmed) {
+      if (!preview.summary || confirmationKey.current !== previewKey) {
+        clearConfirm(false);
+        return;
+      }
       const operatorConditions = enrollmentOperatorConditions(operatorFilters, showOperatorFilters);
       const jsonExt = updateEnrollmentJsonExt(objectToSave.jsonExt, status, operatorConditions);
       const jsonData = JSON.parse(jsonExt);
@@ -232,7 +241,7 @@ function AdvancedCriteriaGroupForm({
         );
         const succeeded = Boolean(response) && !response.error && !response?.payload?.errors?.length;
         if (succeeded) {
-          fetchGroupEnrollmentSummary(summaryParams);
+          preview.load(() => fetchGroupEnrollmentSummary(summaryParams));
           setIsSubmitting(false);
           requestAnimationFrame(() => coreAlert({
             title: formatMessage(intl, 'individual', 'individual.enrollment.submissionGroupTitle'),
@@ -326,14 +335,14 @@ function AdvancedCriteriaGroupForm({
             variant="contained"
             color="primary"
             autoFocus
-            disabled={!object || confirmed}
+            disabled={!object || confirmed || isSubmitting || preview.loading}
           >
             {formatMessage(intl, 'individual', 'individual.enrollment.previewEnrollment')}
           </Button>
         </div>
       </div>
       <Divider />
-      {fetchedEnrollmentGroupSummary && (
+      {enrollmentGroupSummary && (
       <div>
         <div className={classes.item}>
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
@@ -406,7 +415,7 @@ function AdvancedCriteriaGroupForm({
               variant="contained"
               color="primary"
               autoFocus
-              disabled={!object || confirmed || isSubmitting || enrollmentGroupSummary.willEnrol === 0}
+              disabled={!object || confirmed || isSubmitting || preview.loading || enrollmentGroupSummary.willEnrol === 0}
             >
               {formatMessage(intl, 'individual', 'individual.enrollment.confirmEnrollment')}
             </Button>
@@ -438,8 +447,6 @@ const mapStateToProps = (state, props) => ({
   customFilters: state.core.customFilters,
   fetchingEnrollmentGroupSummary: state.individual.fetchingEnrollmentGroupSummary,
   errorEnrollmentGroupSummary: state.individual.errorEnrollmentGroupSummary,
-  fetchedEnrollmentGroupSummary: state.individual.fetchedEnrollmentGroupSummary,
-  enrollmentGroupSummary: state.individual.enrollmentGroupSummary,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
