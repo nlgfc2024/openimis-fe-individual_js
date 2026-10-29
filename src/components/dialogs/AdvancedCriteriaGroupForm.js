@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { injectIntl } from 'react-intl';
 import Button from '@material-ui/core/Button';
-import { Divider, Grid, Paper } from '@material-ui/core';
+import { Divider, Grid } from '@material-ui/core';
 import {
   decodeId,
   formatMessage,
@@ -18,7 +18,6 @@ import { withTheme, withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import AddCircle from '@material-ui/icons/Add';
-import Typography from '@material-ui/core/Typography';
 import AdvancedCriteriaRowValue from './AdvancedCriteriaRowValue';
 import {
   CLEARED_STATE_FILTER,
@@ -39,7 +38,7 @@ import {
   fetchGroupEnrollmentSummary,
 } from '../../actions';
 import GroupPreviewEnrollmentDialog from './GroupPreviewEnrollmentDialog';
-import EnrollmentRankingSummary from './EnrollmentRankingSummary';
+import HouseholdEnrollmentSummary from './HouseholdEnrollmentSummary';
 import useEnrollmentPreview from './useEnrollmentPreview';
 
 const styles = (theme) => ({
@@ -348,65 +347,7 @@ function AdvancedCriteriaGroupForm({
           {formatMessage(intl, 'individual', 'individual.enrollment.summary')}
         </div>
         <Divider />
-        <EnrollmentRankingSummary
-          intl={intl}
-          summary={enrollmentGroupSummary}
-          entityKey="individual.enrollment.entityGroups"
-          entityLabelKey="individual.enrollment.entityGroupsLabel"
-        />
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {formatMessage(intl, 'individual', 'individual.enrollment.totalNumberOfGroups')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.totalNumberOfGroups}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {formatMessage(intl, 'individual', 'individual.enrollment.numberOfSelectedGroups')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.numberOfSelectedGroups}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {formatMessage(intl, 'individual', 'individual.enrollment.numberOfGroupsAssignedToProgramme')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.numberOfGroupsAssignedToProgramme}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {formatMessage(intl, 'individual', 'individual.enrollment.numberOfGroupsNotAssignedToProgramme')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.numberOfGroupsNotAssignedToProgramme}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6" gutterBottom>
-                {/* eslint-disable-next-line max-len */}
-                {formatMessage(intl, 'individual', 'individual.enrollment.numberOfGroupsAssignedToSelectedProgramme')}
-              </Typography>
-              <Typography variant="body1">
-                {enrollmentGroupSummary.numberOfGroupsAssignedToSelectedProgramme}
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+        <HouseholdEnrollmentSummary intl={intl} summary={enrollmentGroupSummary} />
         <Grid container spacing={3}>
           <Grid item xs={5} />
           <Grid item xs={5}>

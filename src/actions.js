@@ -37,6 +37,9 @@ const ENROLLMENT_SUMMARY_FULL_PROJECTION = () => [
 ];
 
 const ENROLLMENT_GROUP_SUMMARY_FULL_PROJECTION = () => [
+  'verifiedUnenrolledHouseholds',
+  'phaseTarget',
+  'enrolledHouseholds',
   'totalNumberOfGroups',
   'numberOfSelectedGroups',
   'numberOfGroupsAssignedToProgramme',

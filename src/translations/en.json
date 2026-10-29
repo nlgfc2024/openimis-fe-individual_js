@@ -1,4 +1,8 @@
 {
+  "individual.enrollment.verifiedUnenrolledHouseholds": "Verified households not enrolled in the current phase",
+  "individual.enrollment.phaseTarget": "Targeted households for the phase",
+  "individual.enrollment.enrolledHouseholds": "Households already enrolled in the current phase",
+  "individual.enrollment.targetNotConfigured": "Not configured",
   "individual.enrollment.guidance.title": "Enrollment guidance",
   "individual.enrollment.guidance.individual": "Review the selected criteria and submit the individual enrollment request.",
   "individual.enrollment.guidance.household": "Review the selected criteria and submit the group enrollment request.",

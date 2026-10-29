@@ -116,3 +116,17 @@ Implementation commits in this repository before this documentation update:
 - `15c5744 fix(enrollment): invalidate preview after filter changes`
 - `066c526 fix(enrollment): omit empty district operator conditions`
 - `1e0dd50 feat(enrollment): add optional district location picker`
+
+## Three-card household preview follow-up
+
+Sub-issue #27 (child of #23), implemented in PR #26. Household preview renders
+exactly three cards: verified eligible households not enrolled in the current
+phase/status, the configured phase target, and households already enrolled in
+that phase/status. Counts follow the selected district and authenticated scope;
+the existing-enrollment count is independent of current eligibility criteria.
+
+A null target displays “Not configured”; zero remains zero. The frontend reads
+`verifiedUnenrolledHouseholds`, `phaseTarget`, and `enrolledHouseholds` from the
+backend summary. Deploy backend PR #22 first. Individual enrollment retains its
+existing summary component. Stale-preview and confirmation safeguards remain.
+No Social Protection module or assembly change is included in this follow-up.
