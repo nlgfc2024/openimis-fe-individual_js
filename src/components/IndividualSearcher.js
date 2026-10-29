@@ -54,6 +54,11 @@ import {
   LOC_LEVELS,
   locationAtLevel,
 } from '../util/searcher-utils';
+import {
+  searcherDefaultFilters,
+  searcherModeProps,
+  searcherOrderingProps,
+} from '../util/searcher-mode';
 
 function IndividualSearcher({
   intl,
@@ -199,11 +204,7 @@ function IndividualSearcher({
     prevSubmittingMutationRef.current = submittingMutation;
   });
 
-  const fetch = (params) => fetchIndividuals(
-    modulesManager,
-    preserveBackendOrder ? params.filter((param) => !/^\s*orderBy\s*:/.test(param)) : params,
-    queryName,
-  );
+  const fetch = (params) => fetchIndividuals(modulesManager, params, queryName);
 
   const headers = () => {
     const headers = [
@@ -313,7 +314,7 @@ function IndividualSearcher({
         filter: `groupId: "${groupId}"`,
       };
     }
-    return { ...filters, ...additionalQueryFilters };
+    return searcherDefaultFilters(readOnly, filters, additionalQueryFilters);
   };
 
   useEffect(() => {
@@ -343,7 +344,6 @@ function IndividualSearcher({
     <div>
       <Searcher
         module="individual"
-        FilterPane={IndividualFilter}
         fetch={fetch}
         items={individuals}
         itemsPageInfo={individualsPageInfo}
@@ -361,22 +361,17 @@ function IndividualSearcher({
           ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['48px'] : []),
         ]}
         itemFormatters={itemFormatters}
-        sorts={preserveBackendOrder ? undefined : sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy={preserveBackendOrder ? undefined : 'lastName'}
         rowIdentifier={rowIdentifier}
-        onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
-        exportable
-        exportFetch={downloadIndividuals}
         exportFields={exportFields}
         exportFieldsColumns={exportFieldsColumns}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         chooseExportableColumns
-        enableHeaderActionButtons
+        enableHeaderActionButtons={!readOnly}
         searcherActions={searcherActions}
         downloadWithIconButton
         moduleName={INDIVIDUAL_MODULE_NAME}
@@ -388,8 +383,17 @@ function IndividualSearcher({
         setAppliedFiltersRowStructure={setAppliedFiltersRowStructure}
         applyNumberCircle={applyNumberCircle}
         compactLayout
-        cacheFiltersKey="individualsFilterCache"
         resetFiltersOnUnmount
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...searcherModeProps({
+          readOnly,
+          FilterPane: IndividualFilter,
+          onDoubleClick,
+          exportFetch: downloadIndividuals,
+          cacheFiltersKey: 'individualsFilterCache',
+        })}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...searcherOrderingProps(preserveBackendOrder, sorts, 'lastName')}
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
         {...(!readOnly ? {
           actionsContributionKey: INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY, isCustomFiltering: true,

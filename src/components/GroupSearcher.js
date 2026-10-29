@@ -38,6 +38,11 @@ import {
   LOC_LEVELS,
   locationAtLevel,
 } from '../util/searcher-utils';
+import {
+  searcherDefaultFilters,
+  searcherModeProps,
+  searcherOrderingProps,
+} from '../util/searcher-mode';
 
 function GroupSearcher({
   intl,
@@ -121,11 +126,7 @@ function GroupSearcher({
     prevSubmittingMutationRef.current = submittingMutation;
   });
 
-  const fetch = (params) => fetchGroups(
-    modulesManager,
-    preserveBackendOrder ? params.filter((param) => !/^\s*orderBy\s*:/.test(param)) : params,
-    queryName,
-  );
+  const fetch = (params) => fetchGroups(modulesManager, params, queryName);
   const canManageGroups = !readOnly
     && (rights.includes(RIGHT_GROUP_UPDATE) || rights.includes(RIGHT_GROUP_DELETE));
 
@@ -200,7 +201,7 @@ function GroupSearcher({
         filter: 'isDeleted: false',
       },
     };
-    return { ...filters, ...additionalQueryFilters };
+    return searcherDefaultFilters(readOnly, filters, additionalQueryFilters);
   };
 
   const [failedExport, setFailedExport] = useState(false);
@@ -233,7 +234,6 @@ function GroupSearcher({
     <div>
       <Searcher
         module="individual"
-        FilterPane={groupFilter}
         fetch={fetch}
         items={groups}
         itemsPageInfo={groupsPageInfo}
@@ -251,15 +251,10 @@ function GroupSearcher({
           ...(canManageGroups ? ['112px'] : []),
         ]}
         itemFormatters={itemFormatters}
-        sorts={preserveBackendOrder ? undefined : sorts}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
         defaultPageSize={DEFAULT_PAGE_SIZE}
-        defaultOrderBy={preserveBackendOrder ? undefined : 'id'}
         rowIdentifier={rowIdentifier}
-        onDoubleClick={onDoubleClick}
         defaultFilters={defaultFilters()}
-        exportable
-        exportFetch={downloadGroups}
         exportFields={[
           'id',
           'json_ext',
@@ -268,10 +263,9 @@ function GroupSearcher({
           id: 'ID',
         }}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
-        enableHeaderActionButtons
+        enableHeaderActionButtons={!readOnly}
         downloadWithIconButton
         compactLayout
-        cacheFiltersKey="groupsFilterCache"
         resetFiltersOnUnmount
         moduleName={INDIVIDUAL_MODULE_NAME}
         objectType={INDIVIDUAL_LABEL}
@@ -283,6 +277,16 @@ function GroupSearcher({
         applyNumberCircle={applyNumberCircle}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...searcherModeProps({
+          readOnly,
+          FilterPane: groupFilter,
+          onDoubleClick,
+          exportFetch: downloadGroups,
+          cacheFiltersKey: 'groupsFilterCache',
+        })}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...searcherOrderingProps(preserveBackendOrder, sorts, 'id')}
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len
         {...(!readOnly ? {
           actionsContributionKey: INDIVIDUAL_GROUP_MENU_CONTRIBUTION_KEY, isCustomFiltering: true,
