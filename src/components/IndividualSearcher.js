@@ -35,6 +35,7 @@ import {
   downloadIndividuals,
   clearIndividualExport,
   undoDeleteIndividual,
+  fetchIndividualGlobalSchema,
 } from '../actions';
 import {
   DEFAULT_PAGE_SIZE,
@@ -87,6 +88,9 @@ function IndividualSearcher({
   fieldsFromBfSchema,
   fetchingFieldsFromBfSchema,
   fetchedFieldsFromBfSchema,
+  individualGlobalSchemaFields,
+  fetchingIndividualGlobalSchema,
+  fetchedIndividualGlobalSchema,
   readOnly = false,
   additionalQueryFilters = {},
   queryName = 'individual',
@@ -114,6 +118,14 @@ function IndividualSearcher({
     first_name: formatMessage(intl, 'individual', 'export.firstName'),
     last_name: formatMessage(intl, 'individual', 'export.lastName'),
     dob: formatMessage(intl, 'individual', 'export.dob'),
+    ...(fieldsFromBfSchema || []).reduce((labels, field) => ({
+      ...labels,
+      [field]: field.replace(/^json_ext__/, '').replace(/_/g, ' '),
+    }), {}),
+    ...(individualGlobalSchemaFields || []).reduce((labels, field) => ({
+      ...labels,
+      [field.field]: field.label,
+    }), {}),
   };
   const prevSubmittingMutationRef = useRef();
 
@@ -128,11 +140,29 @@ function IndividualSearcher({
         dispatch(fetchBenefitPlanSchemaFields(['bfType: INDIVIDUAL']));
       }
     }
-
-    if (!canFetchBenefitPlanSchemaFields) {
-      setExportFields([...exportFields, ...fieldsFromBfSchema]);
+    if (
+      rights.includes(RIGHT_SCHEMA_SEARCH)
+      && !fetchingIndividualGlobalSchema
+      && !fetchedIndividualGlobalSchema
+    ) {
+      dispatch(fetchIndividualGlobalSchema());
     }
-  }, [fetchedFieldsFromBfSchema, fetchingFieldsFromBfSchema, rights, modulesManager]);
+  }, [
+    fetchedFieldsFromBfSchema,
+    fetchingFieldsFromBfSchema,
+    rights,
+    modulesManager,
+    fetchingIndividualGlobalSchema,
+    fetchedIndividualGlobalSchema,
+  ]);
+
+  useEffect(() => {
+    const customFields = [
+      ...(fieldsFromBfSchema || []),
+      ...(individualGlobalSchemaFields || []).map(({ field }) => field),
+    ];
+    setExportFields([...new Set(['id', 'first_name', 'last_name', 'dob', ...customFields])]);
+  }, [fieldsFromBfSchema, individualGlobalSchemaFields]);
 
   function individualUpdatePageUrl(individual) {
     return `${modulesManager.getRef('individual.route.individual')}/${individual?.id}`;
@@ -437,6 +467,9 @@ const mapStateToProps = (state) => ({
   fetchingFieldsFromBfSchema: state?.socialProtection?.fetchingFieldsFromBfSchema,
   fetchedFieldsFromBfSchema: state?.socialProtection?.fetchedFieldsFromBfSchema,
   errorFieldsFromBfSchema: state?.socialProtection?.errorFieldsFromBfSchema,
+  individualGlobalSchemaFields: state.individual.individualGlobalSchemaFields,
+  fetchingIndividualGlobalSchema: state.individual.fetchingIndividualGlobalSchema,
+  fetchedIndividualGlobalSchema: state.individual.fetchedIndividualGlobalSchema,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators(
@@ -445,6 +478,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators(
     deleteIndividual,
     downloadIndividuals,
     clearIndividualExport,
+    fetchIndividualGlobalSchema,
     undoDeleteIndividual,
     coreConfirm,
     clearConfirm,

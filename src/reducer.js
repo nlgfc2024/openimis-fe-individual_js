@@ -40,6 +40,7 @@ export const ACTION_TYPE = {
   SEARCH_GROUP_HISTORY: 'SEARCH_GROUP_HISTORY',
   SET_GROUP_INDIVIDUAL: 'SET_GROUP_INDIVIDUAL',
   GET_WORKFLOWS: 'GET_WORKFLOWS',
+  FETCH_INDIVIDUAL_GLOBAL_SCHEMA: 'FETCH_INDIVIDUAL_GLOBAL_SCHEMA',
   GET_INDIVIDUAL_UPLOAD_HISTORY: 'GET_INDIVIDUAL_UPLOAD_HISTORY',
   SEARCH_GROUP_INDIVIDUAL_HISTORY: 'SEARCH_GROUP_INDIVIDUAL_HISTORY',
   GET_PENDING_GROUPS_UPLOAD: 'GET_PENDING_GROUPS_UPLOAD',
@@ -138,10 +139,51 @@ function reducer(
 
     fetchingMutations: false,
     mutations: [],
+    fetchingIndividualGlobalSchema: false,
+    fetchedIndividualGlobalSchema: false,
+    individualGlobalSchemaFields: [],
   },
   action,
 ) {
   switch (action.type) {
+    case REQUEST(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA):
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: true,
+        fetchedIndividualGlobalSchema: false,
+      };
+    case SUCCESS(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA): {
+      const rawSchema = action.payload?.data?.globalSchema?.schema;
+      let schema = rawSchema;
+      if (typeof rawSchema === 'string') {
+        try {
+          schema = JSON.parse(rawSchema);
+        } catch (error) {
+          schema = {};
+        }
+      }
+      const baseFields = new Set(['id', 'first_name', 'last_name', 'dob']);
+      const properties = schema?.properties || {};
+      const individualGlobalSchemaFields = Object.entries(properties)
+        .filter(([key]) => !baseFields.has(key))
+        .map(([key, definition]) => ({
+          field: key === 'location_id' ? key : `json_ext__${key}`,
+          label: definition?.description || key,
+        }));
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: false,
+        fetchedIndividualGlobalSchema: true,
+        individualGlobalSchemaFields,
+      };
+    }
+    case ERROR(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA):
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: false,
+        fetchedIndividualGlobalSchema: true,
+        individualGlobalSchemaFields: [],
+      };
     case REQUEST(ACTION_TYPE.SEARCH_INDIVIDUALS):
       return {
         ...state,
