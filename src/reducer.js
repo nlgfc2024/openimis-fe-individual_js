@@ -15,6 +15,7 @@ import _ from 'lodash';
 import {
   REQUEST, SUCCESS, ERROR, CLEAR, SET,
 } from './util/action-type';
+import { getIndividualSchemaExportFields } from './util/individual-export';
 
 export const ACTION_TYPE = {
   MUTATION: 'INDIVIDUAL_MUTATION',
@@ -40,6 +41,7 @@ export const ACTION_TYPE = {
   SEARCH_GROUP_HISTORY: 'SEARCH_GROUP_HISTORY',
   SET_GROUP_INDIVIDUAL: 'SET_GROUP_INDIVIDUAL',
   GET_WORKFLOWS: 'GET_WORKFLOWS',
+  FETCH_INDIVIDUAL_GLOBAL_SCHEMA: 'FETCH_INDIVIDUAL_GLOBAL_SCHEMA',
   GET_INDIVIDUAL_UPLOAD_HISTORY: 'GET_INDIVIDUAL_UPLOAD_HISTORY',
   SEARCH_GROUP_INDIVIDUAL_HISTORY: 'SEARCH_GROUP_INDIVIDUAL_HISTORY',
   GET_PENDING_GROUPS_UPLOAD: 'GET_PENDING_GROUPS_UPLOAD',
@@ -138,10 +140,36 @@ function reducer(
 
     fetchingMutations: false,
     mutations: [],
+    fetchingIndividualGlobalSchema: false,
+    fetchedIndividualGlobalSchema: false,
+    individualGlobalSchemaFields: [],
   },
   action,
 ) {
   switch (action.type) {
+    case REQUEST(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA):
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: true,
+        fetchedIndividualGlobalSchema: false,
+      };
+    case SUCCESS(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA): {
+      const rawSchema = action.payload?.data?.globalSchema?.schema;
+      const individualGlobalSchemaFields = getIndividualSchemaExportFields(rawSchema);
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: false,
+        fetchedIndividualGlobalSchema: true,
+        individualGlobalSchemaFields,
+      };
+    }
+    case ERROR(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA):
+      return {
+        ...state,
+        fetchingIndividualGlobalSchema: false,
+        fetchedIndividualGlobalSchema: true,
+        individualGlobalSchemaFields: [],
+      };
     case REQUEST(ACTION_TYPE.SEARCH_INDIVIDUALS):
       return {
         ...state,

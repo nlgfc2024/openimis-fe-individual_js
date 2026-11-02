@@ -31,6 +31,11 @@ export function fetchWorkflows() {
   return graphql(payload, ACTION_TYPE.GET_WORKFLOWS);
 }
 
+export function fetchIndividualGlobalSchema() {
+  const payload = formatQuery('globalSchema', [], ['schema']);
+  return graphql(payload, ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA);
+}
+
 const INDIVIDUAL_FULL_PROJECTION = (mm, withGroupIndividuals = false) => {
   const fields = [
     'id',

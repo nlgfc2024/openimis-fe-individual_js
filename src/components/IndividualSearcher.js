@@ -19,10 +19,12 @@ import { bindActionCreators } from 'redux';
 import { connect, useDispatch } from 'react-redux';
 import {
   IconButton, Tooltip, Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogTitle,
   DialogContent,
+  FormControlLabel,
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -35,6 +37,7 @@ import {
   downloadIndividuals,
   clearIndividualExport,
   undoDeleteIndividual,
+  fetchIndividualGlobalSchema,
 } from '../actions';
 import {
   DEFAULT_PAGE_SIZE,
@@ -42,6 +45,7 @@ import {
   EMPTY_STRING,
   RIGHT_INDIVIDUAL_UPDATE,
   RIGHT_INDIVIDUAL_DELETE,
+  RIGHT_INDIVIDUAL_SEARCH,
   RIGHT_SCHEMA_SEARCH,
   FETCH_BENEFIT_PLAN_SCHEMA_FIELDS_REF,
   INDIVIDUAL_MODULE_NAME,
@@ -59,6 +63,7 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
+import { BASE_INDIVIDUAL_EXPORT_FIELDS } from '../util/individual-export';
 
 function IndividualSearcher({
   intl,
@@ -87,6 +92,9 @@ function IndividualSearcher({
   fieldsFromBfSchema,
   fetchingFieldsFromBfSchema,
   fetchedFieldsFromBfSchema,
+  individualGlobalSchemaFields,
+  fetchingIndividualGlobalSchema,
+  fetchedIndividualGlobalSchema,
   readOnly = false,
   additionalQueryFilters = {},
   queryName = 'individual',
@@ -100,20 +108,26 @@ function IndividualSearcher({
   const [appliedFiltersRowStructure, setAppliedFiltersRowStructure] = useState([CLEARED_STATE_FILTER]);
   const [deletedIndividualUuids, setDeletedIndividualUuids] = useState([]);
   const [undoIndividualUuids, setUndoIndividualUuids] = useState([]);
+  const [exportConfigOpen, setExportConfigOpen] = useState(false);
+  const [exportParameters, setExportParameters] = useState([]);
+  const [selectedExportFields, setSelectedExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
   const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
   const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
   const showUploadHistory = modulesManager.getConf('fe-individual', 'show_upload_history', true);
-  const [exportFields, setExportFields] = useState([
-    'id',
-    'first_name',
-    'last_name',
-    'dob',
-  ]);
+  const [exportFields, setExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
   const exportFieldsColumns = {
     id: 'ID',
     first_name: formatMessage(intl, 'individual', 'export.firstName'),
     last_name: formatMessage(intl, 'individual', 'export.lastName'),
     dob: formatMessage(intl, 'individual', 'export.dob'),
+    ...(fieldsFromBfSchema || []).reduce((labels, field) => ({
+      ...labels,
+      [field]: field.replace(/^json_ext__/, '').replace(/_/g, ' '),
+    }), {}),
+    ...(individualGlobalSchemaFields || []).reduce((labels, field) => ({
+      ...labels,
+      [field.field]: field.label,
+    }), {}),
   };
   const prevSubmittingMutationRef = useRef();
 
@@ -128,11 +142,48 @@ function IndividualSearcher({
         dispatch(fetchBenefitPlanSchemaFields(['bfType: INDIVIDUAL']));
       }
     }
-
-    if (!canFetchBenefitPlanSchemaFields) {
-      setExportFields([...exportFields, ...fieldsFromBfSchema]);
+    if (
+      rights.includes(RIGHT_INDIVIDUAL_SEARCH)
+      && !fetchingIndividualGlobalSchema
+      && !fetchedIndividualGlobalSchema
+    ) {
+      dispatch(fetchIndividualGlobalSchema());
     }
-  }, [fetchedFieldsFromBfSchema, fetchingFieldsFromBfSchema, rights, modulesManager]);
+  }, [
+    fetchedFieldsFromBfSchema,
+    fetchingFieldsFromBfSchema,
+    rights,
+    modulesManager,
+    fetchingIndividualGlobalSchema,
+    fetchedIndividualGlobalSchema,
+  ]);
+
+  useEffect(() => {
+    const customFields = [
+      ...(fieldsFromBfSchema || []),
+      ...(individualGlobalSchemaFields || []).map(({ field }) => field),
+    ];
+    setExportFields([...new Set(['id', 'first_name', 'last_name', 'dob', ...customFields])]);
+  }, [fieldsFromBfSchema, individualGlobalSchemaFields]);
+
+  const openIndividualExportConfig = (parameters) => {
+    setExportParameters(parameters);
+    setSelectedExportFields(BASE_INDIVIDUAL_EXPORT_FIELDS);
+    setExportConfigOpen(true);
+  };
+
+  const confirmIndividualExport = () => {
+    const selectedColumns = Object.fromEntries(
+      selectedExportFields.map((field) => [field, exportFieldsColumns[field] || field]),
+    );
+    const parameters = exportParameters.filter((parameter) => (
+      !parameter.startsWith('fields:') && !parameter.startsWith('fieldsColumns:')
+    ));
+    parameters.push(`fields: ${JSON.stringify(selectedExportFields)}`);
+    parameters.push(`fieldsColumns: "${JSON.stringify(selectedColumns).replace(/"/g, '\\"')}"`);
+    downloadIndividuals(parameters);
+    setExportConfigOpen(false);
+  };
 
   function individualUpdatePageUrl(individual) {
     return `${modulesManager.getRef('individual.route.individual')}/${individual?.id}`;
@@ -367,10 +418,9 @@ function IndividualSearcher({
         defaultFilters={defaultFilters()}
         rowDisabled={isRowDisabled}
         rowLocked={isRowDisabled}
-        exportFields={exportFields}
+        exportFields={BASE_INDIVIDUAL_EXPORT_FIELDS}
         exportFieldsColumns={exportFieldsColumns}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
-        chooseExportableColumns
         enableHeaderActionButtons={!readOnly}
         searcherActions={searcherActions}
         downloadWithIconButton
@@ -389,7 +439,7 @@ function IndividualSearcher({
           readOnly,
           FilterPane: IndividualFilter,
           onDoubleClick,
-          exportFetch: downloadIndividuals,
+          exportFetch: openIndividualExportConfig,
           cacheFiltersKey: 'individualsFilterCache',
         })}
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -399,6 +449,41 @@ function IndividualSearcher({
           actionsContributionKey: INDIVIDUALS_UPLOAD_FORM_CONTRIBUTION_KEY, isCustomFiltering: true,
         } : { isCustomFiltering: false })}
       />
+      <Dialog open={exportConfigOpen} onClose={() => setExportConfigOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>{formatMessage(intl, 'core', 'exportConfigDialog.title')}</DialogTitle>
+        <DialogContent>
+          {exportFields.map((field) => (
+            <FormControlLabel
+              key={field}
+              control={(
+                <Checkbox
+                  color="primary"
+                  checked={selectedExportFields.includes(field)}
+                  onChange={(event) => setSelectedExportFields((selected) => (
+                    event.target.checked
+                      ? [...selected, field]
+                      : selected.filter((selectedField) => selectedField !== field)
+                  ))}
+                />
+              )}
+              label={exportFieldsColumns[field] || field}
+            />
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExportConfigOpen(false)}>
+            {formatMessage(intl, 'core', 'exportConfigDialog.cancelButton')}
+          </Button>
+          <Button
+            onClick={confirmIndividualExport}
+            color="primary"
+            variant="contained"
+            disabled={!selectedExportFields.length}
+          >
+            {formatMessage(intl, 'core', 'exportConfigDialog.confirmButton')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       {failedExport && (
         <Dialog open={failedExport} fullWidth maxWidth="sm">
           <DialogTitle>{errorIndividualExport?.message}</DialogTitle>
@@ -437,6 +522,9 @@ const mapStateToProps = (state) => ({
   fetchingFieldsFromBfSchema: state?.socialProtection?.fetchingFieldsFromBfSchema,
   fetchedFieldsFromBfSchema: state?.socialProtection?.fetchedFieldsFromBfSchema,
   errorFieldsFromBfSchema: state?.socialProtection?.errorFieldsFromBfSchema,
+  individualGlobalSchemaFields: state.individual.individualGlobalSchemaFields,
+  fetchingIndividualGlobalSchema: state.individual.fetchingIndividualGlobalSchema,
+  fetchedIndividualGlobalSchema: state.individual.fetchedIndividualGlobalSchema,
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators(
@@ -445,6 +533,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators(
     deleteIndividual,
     downloadIndividuals,
     clearIndividualExport,
+    fetchIndividualGlobalSchema,
     undoDeleteIndividual,
     coreConfirm,
     clearConfirm,
