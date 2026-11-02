@@ -15,6 +15,7 @@ import _ from 'lodash';
 import {
   REQUEST, SUCCESS, ERROR, CLEAR, SET,
 } from './util/action-type';
+import { getIndividualSchemaExportFields } from './util/individual-export';
 
 export const ACTION_TYPE = {
   MUTATION: 'INDIVIDUAL_MUTATION',
@@ -154,22 +155,7 @@ function reducer(
       };
     case SUCCESS(ACTION_TYPE.FETCH_INDIVIDUAL_GLOBAL_SCHEMA): {
       const rawSchema = action.payload?.data?.globalSchema?.schema;
-      let schema = rawSchema;
-      if (typeof rawSchema === 'string') {
-        try {
-          schema = JSON.parse(rawSchema);
-        } catch (error) {
-          schema = {};
-        }
-      }
-      const baseFields = new Set(['id', 'first_name', 'last_name', 'dob']);
-      const properties = schema?.properties || {};
-      const individualGlobalSchemaFields = Object.entries(properties)
-        .filter(([key]) => !baseFields.has(key))
-        .map(([key, definition]) => ({
-          field: key === 'location_id' ? key : `json_ext__${key}`,
-          label: definition?.description || key,
-        }));
+      const individualGlobalSchemaFields = getIndividualSchemaExportFields(rawSchema);
       return {
         ...state,
         fetchingIndividualGlobalSchema: false,
