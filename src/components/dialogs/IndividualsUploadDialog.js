@@ -21,8 +21,13 @@ import { bindActionCreators } from 'redux';
 import WorkflowsPicker from '../../pickers/WorkflowsPicker';
 import { fetchWorkflows } from '../../actions';
 import IndividualsHistoryUploadDialog from './IndividualsHistoryUploadDialog';
-import { EMPTY_STRING, INDIVIDUAL_MODULE_NAME, PYTHON_DEFAULT_IMPORT_WORKFLOW } from '../../constants';
+import {
+  INDIVIDUAL_MODULE_NAME,
+  KYC_DETAILS_WORKFLOW,
+  PYTHON_DEFAULT_IMPORT_WORKFLOW,
+} from '../../constants';
 import downloadTemplate from '../../util/export';
+import { getUploadErrorMessage, readUploadResponse } from '../../util/upload-response';
 
 const styles = (theme) => ({
   item: theme.paper.item,
@@ -140,20 +145,34 @@ function IndividualsUploadDialog({
         method: 'POST',
         credentials: 'same-origin',
       });
+      const result = await readUploadResponse(response);
 
-      if (response.ok) {
-        handleClose();
+      if (!response.ok || result.success === false) {
+        const errorHeader = formatMessage(intl, 'individual', 'individual.upload.alert.header');
+        const errorMessage = response.status === 409
+          ? formatMessage(intl, 'individual', 'individual.upload.alert.sameFileName')
+          : getUploadErrorMessage(
+            result,
+            formatMessage(intl, 'individual', 'individual.upload.alert.message.failed'),
+          );
+        coreAlert(errorHeader, errorMessage);
         return;
       }
 
-      const errorHeader = formatMessage(intl, 'individual', 'individual.upload.alert.header');
-      const errorMessage = response.status === 409
-        ? formatMessage(intl, 'individual', 'individual.upload.alert.sameFileName')
-        : EMPTY_STRING;
-
-      coreAlert(errorHeader, errorMessage);
-    } catch (error) {
+      coreAlert(
+        formatMessage(intl, 'individual', 'individual.upload.alert.header.success'),
+        formatMessage(
+          intl,
+          'individual',
+          'individual.upload.alert.message.success',
+        ),
+      );
       handleClose();
+    } catch (error) {
+      coreAlert(
+        formatMessage(intl, 'individual', 'individual.upload.alert.header'),
+        error?.message || formatMessage(intl, 'individual', 'individual.upload.alert.message.connection'),
+      );
     }
   };
 
@@ -216,7 +235,9 @@ function IndividualsUploadDialog({
                       label="workflowPicker"
                       onChange={(value) => handleFieldChange('workflows', 'workflow', value)}
                       value={() => getFieldValue()}
-                      workflows={workflows}
+                      workflows={(workflows ?? []).filter(
+                        (workflow) => workflow.name !== KYC_DETAILS_WORKFLOW,
+                      )}
                       required
                     />
                   </Grid>

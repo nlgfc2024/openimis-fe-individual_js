@@ -8,6 +8,7 @@ import {
   withHistory,
   historyPush,
   downloadExport,
+  EXPORT_FILE_FORMATS,
   coreConfirm,
   clearConfirm,
   journalize,
@@ -205,7 +206,52 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
-
+  const [exportFileFormat, setExportFileFormat] = useState(EXPORT_FILE_FORMATS.xlsx);
+  const kycExportFields = [
+    'district_name',
+    'traditional_authority_name',
+    'catchment_name',
+    'group_village_head_name',
+    'village_name',
+    'kyc_phase',
+    'form_number',
+    'full_name',
+    'national_id',
+    'date_of_birth',
+    'Gender',
+    'account_number',
+    'account_name',
+    'bank',
+  ];
+  const kycExportColumns = {
+    district_name: 'District',
+    traditional_authority_name: 'Traditional Authority',
+    catchment_name: 'Catchment',
+    group_village_head_name: 'Group Village Head',
+    village_name: 'Village',
+    kyc_phase: 'Phase',
+    form_number: 'Household Form Number',
+    full_name: 'Full Name',
+    national_id: 'National ID',
+    date_of_birth: 'Date of Birth',
+    Gender: 'Gender',
+    account_number: 'Account Number',
+    account_name: 'Account Name',
+    bank: 'Bank / Provider',
+  };
+  const groupExportOptions = [
+    { label: 'Download household data' },
+    {
+      label: 'Download KYC payment details',
+      requiresPhase: true,
+      fields: kycExportFields,
+      columns: kycExportColumns,
+      parameters: [
+        'includePrimaryRecipientData: true',
+        'primaryRecipientOnly: true',
+      ],
+    },
+  ];
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
@@ -214,12 +260,20 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      downloadExport(groupExport, `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`)();
+      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.${exportFileFormat}`;
+      const mimeType = exportFileFormat === EXPORT_FILE_FORMATS.xlsx
+        ? 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : exportFileFormat;
+      downloadExport(
+        groupExport,
+        fileName,
+        mimeType,
+      )();
       clearGroupExport();
     }
 
     return setFailedExport(false);
-  }, [groupExport]);
+  }, [groupExport, exportFileFormat]);
 
   const groupFilter = (props) => (
     <GroupFilter
@@ -256,12 +310,76 @@ function GroupSearcher({
         rowIdentifier={rowIdentifier}
         defaultFilters={defaultFilters()}
         exportFields={[
-          'id',
-          'json_ext',
+          'code',
+          'json_ext__form_number',
+          'json_ext__validation_status',
+          'json_ext__validation_project_name',
+          'json_ext__sector',
+          'location__parent__parent__parent__name',
+          'location__parent__parent__name',
+          'location__parent__name',
+          'location__name',
+          'kyc_catchment',
+          'primary_recipient_first_name',
+          'primary_recipient_last_name',
+          'primary_recipient_dob',
+          'primary_recipient_national_id',
+          'primary_recipient_account_number',
+          'primary_recipient_account_name',
+          'primary_recipient_bank',
         ]}
         exportFieldsColumns={{
-          id: 'ID',
+          code: formatMessage(intl, 'individual', 'group.code'),
+          json_ext__form_number: formatMessage(intl, 'individual', 'group.filter.formNumber'),
+          json_ext__validation_status: formatMessage(intl, 'individual', 'group.filter.status'),
+          json_ext__validation_project_name: formatMessage(intl, 'individual', 'group.filter.project'),
+          json_ext__sector: formatMessage(intl, 'individual', 'group.filter.sector'),
+          location__parent__parent__parent__name: formatMessage(intl, 'individual', 'group.filter.district'),
+          location__parent__parent__name: formatMessage(intl, 'individual', 'group.filter.ta'),
+          location__parent__name: formatMessage(intl, 'individual', 'group.filter.gvh'),
+          location__name: formatMessage(intl, 'individual', 'group.filter.village'),
+          kyc_catchment: formatMessage(intl, 'individual', 'group.filter.catchment'),
+          primary_recipient_first_name: formatMessage(
+            intl,
+            'individual',
+            'group.filter.primaryFirstName',
+          ),
+          primary_recipient_last_name: formatMessage(
+            intl,
+            'individual',
+            'group.filter.primaryLastName',
+          ),
+          primary_recipient_dob: formatMessage(
+            intl,
+            'individual',
+            'group.filter.primaryDob',
+          ),
+          primary_recipient_national_id: formatMessage(
+            intl,
+            'individual',
+            'group.filter.nationalId',
+          ),
+          primary_recipient_account_number: formatMessage(
+            intl,
+            'individual',
+            'group.filter.accountNumber',
+          ),
+          primary_recipient_account_name: formatMessage(
+            intl,
+            'individual',
+            'group.filter.accountName',
+          ),
+          primary_recipient_bank: formatMessage(
+            intl,
+            'individual',
+            'group.filter.bank',
+          ),
         }}
+        chooseExportableColumns
+        chooseFileFormat
+        exportFileFormats={EXPORT_FILE_FORMATS}
+        exportFileFormat={exportFileFormat}
+        setExportFileFormat={setExportFileFormat}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         enableHeaderActionButtons={!readOnly}
         downloadWithIconButton
@@ -285,6 +403,7 @@ function GroupSearcher({
           exportFetch: downloadGroups,
           cacheFiltersKey: 'groupsFilterCache',
         })}
+        exportOptions={groupExportOptions}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...searcherOrderingProps(preserveBackendOrder, sorts, 'id')}
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len

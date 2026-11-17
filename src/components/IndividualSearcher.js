@@ -63,7 +63,12 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
-import { BASE_INDIVIDUAL_EXPORT_FIELDS } from '../util/individual-export';
+import {
+  BASE_INDIVIDUAL_EXPORT_FIELDS,
+  KYC_EXPORT_SELECTED_FIELDS,
+  KYC_EXPORT_FIELDS,
+  getIndividualExportParameters,
+} from '../util/individual-export';
 
 function IndividualSearcher({
   intl,
@@ -128,6 +133,10 @@ function IndividualSearcher({
       ...labels,
       [field.field]: field.label,
     }), {}),
+    ...KYC_EXPORT_FIELDS.reduce((labels, field) => ({
+      ...labels,
+      [field.field]: field.label,
+    }), {}),
   };
   const prevSubmittingMutationRef = useRef();
 
@@ -172,16 +181,16 @@ function IndividualSearcher({
     setExportConfigOpen(true);
   };
 
+  const selectKycExportFields = () => {
+    setSelectedExportFields(KYC_EXPORT_SELECTED_FIELDS);
+  };
+
   const confirmIndividualExport = () => {
-    const selectedColumns = Object.fromEntries(
-      selectedExportFields.map((field) => [field, exportFieldsColumns[field] || field]),
-    );
-    const parameters = exportParameters.filter((parameter) => (
-      !parameter.startsWith('fields:') && !parameter.startsWith('fieldsColumns:')
+    downloadIndividuals(getIndividualExportParameters(
+      exportParameters,
+      selectedExportFields,
+      exportFieldsColumns,
     ));
-    parameters.push(`fields: ${JSON.stringify(selectedExportFields)}`);
-    parameters.push(`fieldsColumns: "${JSON.stringify(selectedColumns).replace(/"/g, '\\"')}"`);
-    downloadIndividuals(parameters);
     setExportConfigOpen(false);
   };
 
@@ -471,6 +480,9 @@ function IndividualSearcher({
           ))}
         </DialogContent>
         <DialogActions>
+          <Button onClick={selectKycExportFields}>
+            {formatMessage(intl, 'individual', 'export.kycPreset')}
+          </Button>
           <Button onClick={() => setExportConfigOpen(false)}>
             {formatMessage(intl, 'core', 'exportConfigDialog.cancelButton')}
           </Button>
