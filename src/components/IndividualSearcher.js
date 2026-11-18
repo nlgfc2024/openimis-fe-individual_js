@@ -65,8 +65,6 @@ import {
 } from '../util/searcher-mode';
 import {
   BASE_INDIVIDUAL_EXPORT_FIELDS,
-  KYC_EXPORT_SELECTED_FIELDS,
-  KYC_EXPORT_FIELDS,
   getIndividualExportParameters,
 } from '../util/individual-export';
 
@@ -116,8 +114,8 @@ function IndividualSearcher({
   const [exportConfigOpen, setExportConfigOpen] = useState(false);
   const [exportParameters, setExportParameters] = useState([]);
   const [selectedExportFields, setSelectedExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
-  const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
-  const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
+  const IndividualsUploadDialog = modulesManager.getRef('individual.IndividualsUploadDialog');
+  const IndividualsUploadHistoryDialog = modulesManager.getRef('individual.IndividualsUploadHistoryDialog');
   const showUploadHistory = modulesManager.getConf('fe-individual', 'show_upload_history', true);
   const [exportFields, setExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
   const exportFieldsColumns = {
@@ -130,10 +128,6 @@ function IndividualSearcher({
       [field]: field.replace(/^json_ext__/, '').replace(/_/g, ' '),
     }), {}),
     ...(individualGlobalSchemaFields || []).reduce((labels, field) => ({
-      ...labels,
-      [field.field]: field.label,
-    }), {}),
-    ...KYC_EXPORT_FIELDS.reduce((labels, field) => ({
       ...labels,
       [field.field]: field.label,
     }), {}),
@@ -179,10 +173,6 @@ function IndividualSearcher({
     setExportParameters(parameters);
     setSelectedExportFields(BASE_INDIVIDUAL_EXPORT_FIELDS);
     setExportConfigOpen(true);
-  };
-
-  const selectKycExportFields = () => {
-    setSelectedExportFields(KYC_EXPORT_SELECTED_FIELDS);
   };
 
   const confirmIndividualExport = () => {
@@ -385,17 +375,37 @@ function IndividualSearcher({
     {
       authorized: !readOnly && !!IndividualsUploadDialog,
       render: ({ className, size }) => (
-        <IndividualsUploadDialog renderTrigger={({ onClick, label }) => (
-          <SearcherActionButton onClick={onClick} startIcon={<CloudUploadIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
-        )} />
+        <IndividualsUploadDialog
+          renderTrigger={({ onClick, label }) => (
+            <SearcherActionButton
+              onClick={onClick}
+              startIcon={<CloudUploadIcon />}
+              label={label}
+              variant="outlined"
+              size={size}
+              className={className}
+              borderless={false}
+            />
+          )}
+        />
       ),
     },
     {
       authorized: !readOnly && showUploadHistory && !!IndividualsUploadHistoryDialog,
       render: ({ className, size }) => (
-        <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
-          <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
-        )} />
+        <IndividualsUploadHistoryDialog
+          renderTrigger={({ onClick, label }) => (
+            <SearcherActionButton
+              onClick={onClick}
+              startIcon={<HistoryIcon />}
+              label={label}
+              variant="outlined"
+              size={size}
+              className={className}
+              borderless={false}
+            />
+          )}
+        />
       ),
     },
   ];
@@ -410,7 +420,9 @@ function IndividualSearcher({
         fetchingItems={fetchingIndividuals}
         fetchedItems={fetchedIndividuals}
         errorItems={errorIndividuals}
-        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', { individualsTotalCount })}
+        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', {
+          individualsTotalCount,
+        })}
         headers={headers}
         columnWidths={[
           '18%',
@@ -480,9 +492,6 @@ function IndividualSearcher({
           ))}
         </DialogContent>
         <DialogActions>
-          <Button onClick={selectKycExportFields}>
-            {formatMessage(intl, 'individual', 'export.kycPreset')}
-          </Button>
           <Button onClick={() => setExportConfigOpen(false)}>
             {formatMessage(intl, 'core', 'exportConfigDialog.cancelButton')}
           </Button>

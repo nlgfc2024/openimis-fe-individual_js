@@ -207,38 +207,40 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
-  const [exportFileFormat, setExportFileFormat] = useState(EXPORT_FILE_FORMATS.xlsx);
+  // The generic core exporter currently produces CSV content. Keep its file
+  // extension honest until XLSX generation is implemented in core.
+  const [exportFileFormat, setExportFileFormat] = useState(EXPORT_FILE_FORMATS.csv);
   const kycExportFields = [
-    'district_name',
-    'traditional_authority_name',
-    'catchment_name',
-    'group_village_head_name',
-    'village_name',
+    'location__parent__parent__parent__name',
+    'location__parent__parent__name',
+    'kyc_catchment',
+    'location__parent__name',
+    'location__name',
     'kyc_phase',
-    'form_number',
-    'full_name',
-    'national_id',
-    'date_of_birth',
-    'Gender',
-    'account_number',
-    'account_name',
-    'bank',
+    'json_ext__form_number',
+    'primary_recipient_full_name',
+    'primary_recipient_national_id',
+    'primary_recipient_dob',
+    'primary_recipient_gender',
+    'primary_recipient_account_number',
+    'primary_recipient_account_name',
+    'primary_recipient_bank',
   ];
   const kycExportColumns = {
-    district_name: 'District',
-    traditional_authority_name: 'Traditional Authority',
-    catchment_name: 'Catchment',
-    group_village_head_name: 'Group Village Head',
-    village_name: 'Village',
+    location__parent__parent__parent__name: 'District',
+    location__parent__parent__name: 'Traditional Authority',
+    kyc_catchment: 'Catchment',
+    location__parent__name: 'Group Village Head',
+    location__name: 'Village',
     kyc_phase: 'Phase',
-    form_number: 'Household Form Number',
-    full_name: 'Full Name',
-    national_id: 'National ID',
-    date_of_birth: 'Date of Birth',
-    Gender: 'Gender',
-    account_number: 'Account Number',
-    account_name: 'Account Name',
-    bank: 'Bank / Provider',
+    json_ext__form_number: 'Household Form Number',
+    primary_recipient_full_name: 'Full Name',
+    primary_recipient_national_id: 'National ID',
+    primary_recipient_dob: 'Date of Birth',
+    primary_recipient_gender: 'Gender',
+    primary_recipient_account_number: 'Account Number',
+    primary_recipient_account_name: 'Account Name',
+    primary_recipient_bank: 'Bank / Provider',
   };
   const groupExportOptions = [
     { id: 'household-data', label: 'Download household data' },
@@ -328,14 +330,6 @@ function GroupSearcher({
           'location__parent__parent__name',
           'location__parent__name',
           'location__name',
-          'kyc_catchment',
-          'primary_recipient_first_name',
-          'primary_recipient_last_name',
-          'primary_recipient_dob',
-          'primary_recipient_national_id',
-          'primary_recipient_account_number',
-          'primary_recipient_account_name',
-          'primary_recipient_bank',
         ]}
         exportFieldsColumns={{
           code: formatMessage(intl, 'individual', 'group.code'),
@@ -347,42 +341,6 @@ function GroupSearcher({
           location__parent__parent__name: formatMessage(intl, 'individual', 'group.filter.ta'),
           location__parent__name: formatMessage(intl, 'individual', 'group.filter.gvh'),
           location__name: formatMessage(intl, 'individual', 'group.filter.village'),
-          kyc_catchment: formatMessage(intl, 'individual', 'group.filter.catchment'),
-          primary_recipient_first_name: formatMessage(
-            intl,
-            'individual',
-            'group.filter.primaryFirstName',
-          ),
-          primary_recipient_last_name: formatMessage(
-            intl,
-            'individual',
-            'group.filter.primaryLastName',
-          ),
-          primary_recipient_dob: formatMessage(
-            intl,
-            'individual',
-            'group.filter.primaryDob',
-          ),
-          primary_recipient_national_id: formatMessage(
-            intl,
-            'individual',
-            'group.filter.nationalId',
-          ),
-          primary_recipient_account_number: formatMessage(
-            intl,
-            'individual',
-            'group.filter.accountNumber',
-          ),
-          primary_recipient_account_name: formatMessage(
-            intl,
-            'individual',
-            'group.filter.accountName',
-          ),
-          primary_recipient_bank: formatMessage(
-            intl,
-            'individual',
-            'group.filter.bank',
-          ),
         }}
         chooseExportableColumns
         chooseFileFormat
