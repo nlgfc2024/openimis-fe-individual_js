@@ -11,18 +11,23 @@ import {
   Collapse,
   Typography,
 } from '@material-ui/core';
-import { withTheme, withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import { UPLOAD_STATUS } from '../constants';
 import { getUploadErrorDetails } from '../util/upload-response';
 
 const styles = (theme) => ({
   item: theme.paper.item,
+  errorDetails: {
+    margin: theme.spacing(1),
+    whiteSpace: 'pre-wrap',
+  },
 });
 
 function CollapsableErrorList({
   intl,
   errors,
   status,
+  classes,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const errorDetails = getUploadErrorDetails(errors);
@@ -65,7 +70,7 @@ function CollapsableErrorList({
         <Typography
           component="pre"
           variant="body2"
-          style={{ margin: 8, whiteSpace: 'pre-wrap' }}
+          className={classes.errorDetails}
         >
           {errorDetails}
         </Typography>
@@ -74,8 +79,4 @@ function CollapsableErrorList({
   );
 }
 
-export default injectIntl(
-  withTheme(
-    withStyles(styles)(CollapsableErrorList),
-  ),
-);
+export default injectIntl(withStyles(styles)(CollapsableErrorList));

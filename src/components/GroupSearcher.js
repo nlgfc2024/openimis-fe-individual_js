@@ -10,7 +10,6 @@ import {
   withHistory,
   historyPush,
   downloadExport,
-  EXPORT_FILE_FORMATS,
   coreConfirm,
   clearConfirm,
   decodeId,
@@ -47,40 +46,13 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
+import {
+  DEFAULT_GROUP_EXPORT_FIELDS,
+  getGroupExportFields,
+  hasConfiguredKycGroupExport,
+} from '../util/group-export-config';
 
-const KYC_EXPORT_FIELDS = [
-  'location__parent__parent__parent__name',
-  'location__parent__parent__name',
-  'kyc_catchment',
-  'location__parent__name',
-  'location__name',
-  'kyc_phase',
-  'json_ext__form_number',
-  'primary_recipient_full_name',
-  'primary_recipient_national_id',
-  'primary_recipient_dob',
-  'primary_recipient_gender',
-  'primary_recipient_account_number',
-  'primary_recipient_account_name',
-  'primary_recipient_bank',
-];
-
-const KYC_EXPORT_COLUMN_LABELS = {
-  location__parent__parent__parent__name: 'export.kycDistrict',
-  location__parent__parent__name: 'export.kycTraditionalAuthority',
-  kyc_catchment: 'export.kycCatchment',
-  location__parent__name: 'export.kycGroupVillageHead',
-  location__name: 'export.kycVillage',
-  kyc_phase: 'export.kycPhase',
-  json_ext__form_number: 'export.kycHouseholdFormNumber',
-  primary_recipient_full_name: 'export.kycFullName',
-  primary_recipient_national_id: 'export.kycNationalId',
-  primary_recipient_dob: 'export.kycDateOfBirth',
-  primary_recipient_gender: 'export.kycGender',
-  primary_recipient_account_number: 'export.kycAccountNumber',
-  primary_recipient_account_name: 'export.kycAccountName',
-  primary_recipient_bank: 'export.kycBankProvider',
-};
+const DEFAULT_GROUP_EXPORT_FIELD_LABELS = { id: 'group.id' };
 
 function GroupSearcher({
   intl,
@@ -243,43 +215,64 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
-  // The generic core exporter currently produces CSV content. Keep its file
-  // extension honest until XLSX generation is implemented in core.
-  const [exportFileFormat, setExportFileFormat] = useState(EXPORT_FILE_FORMATS.csv);
+  const configuredGroupExportFields = modulesManager.getConf(
+    'fe-individual',
+    'group_export_fields',
+    DEFAULT_GROUP_EXPORT_FIELDS,
+  );
+  const groupExportFields = getGroupExportFields(configuredGroupExportFields);
+  const groupExportFieldLabels = modulesManager.getConf(
+    'fe-individual',
+    'group_export_field_labels',
+    DEFAULT_GROUP_EXPORT_FIELD_LABELS,
+  );
+  const groupKycExport = modulesManager.getConf('fe-individual', 'group_kyc_export', null);
   const groupExportOptions = useMemo(() => {
-    const kycExportColumns = Object.entries(KYC_EXPORT_COLUMN_LABELS).reduce(
-      (columns, [field, labelKey]) => ({
-        ...columns,
-        [field]: formatMessage(intl, 'individual', labelKey),
-      }),
-      {},
-    );
+    if (!hasConfiguredKycGroupExport(groupKycExport)) {
+      return [];
+    }
 
+    const kycExportColumns = Object.fromEntries(
+      groupKycExport.fields.map((field) => [
+        field,
+        formatMessage(intl, 'individual', groupKycExport.columnLabels?.[field] || field),
+      ]),
+    );
     return [
       {
-        id: 'household-data',
-        label: formatMessage(intl, 'individual', 'export.householdData'),
+        id: 'group-data',
+        label: formatMessage(intl, 'individual', 'export.groupData'),
       },
       {
         id: 'kyc-payment-details',
-        label: formatMessage(intl, 'individual', 'export.kycPaymentDetails'),
-        fields: KYC_EXPORT_FIELDS,
+        label: formatMessage(
+          intl,
+          'individual',
+          groupKycExport.label || 'export.additionalGroupData',
+        ),
+        fields: groupKycExport.fields,
         columns: kycExportColumns,
         additionalFields: {},
-        parameters: [
+        parameters: groupKycExport.parameters || [
           'includePrimaryRecipientData: true',
           'primaryRecipientOnly: true',
         ],
         picker: {
-          pubRef: 'socialProtection.BenefitPlanPicker',
-          props: { type: 'GROUP' },
-          label: formatMessage(intl, 'individual', 'export.kycPhase'),
+          pubRef: groupKycExport.pickerPubRef || 'socialProtection.BenefitPlanPicker',
+          props: groupKycExport.pickerProps || { type: 'GROUP' },
+          label: formatMessage(
+            intl,
+            'individual',
+            groupKycExport.pickerLabel || 'export.benefitPlan',
+          ),
           required: true,
         },
-        getParameters: (phase) => (phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []),
+        getParameters: (phase) => (
+          phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []
+        ),
       },
     ];
-  }, [intl]);
+  }, [groupKycExport, intl]);
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
@@ -288,20 +281,13 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.${exportFileFormat}`;
-      const mimeType = exportFileFormat === EXPORT_FILE_FORMATS.xlsx
-        ? 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        : exportFileFormat;
-      downloadExport(
-        groupExport,
-        fileName,
-        mimeType,
-      )();
+      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+      downloadExport(groupExport, fileName)();
       clearGroupExport();
     }
 
     return setFailedExport(false);
-  }, [groupExport, exportFileFormat]);
+  }, [groupExport]);
 
   const groupFilter = (props) => (
     <GroupFilter
@@ -337,33 +323,14 @@ function GroupSearcher({
         defaultPageSize={DEFAULT_PAGE_SIZE}
         rowIdentifier={rowIdentifier}
         defaultFilters={defaultFilters()}
-        exportFields={[
-          'code',
-          'json_ext__form_number',
-          'json_ext__validation_status',
-          'json_ext__validation_project_name',
-          'json_ext__sector',
-          'location__parent__parent__parent__name',
-          'location__parent__parent__name',
-          'location__parent__name',
-          'location__name',
-        ]}
-        exportFieldsColumns={{
-          code: formatMessage(intl, 'individual', 'group.code'),
-          json_ext__form_number: formatMessage(intl, 'individual', 'group.filter.formNumber'),
-          json_ext__validation_status: formatMessage(intl, 'individual', 'group.filter.status'),
-          json_ext__validation_project_name: formatMessage(intl, 'individual', 'group.filter.project'),
-          json_ext__sector: formatMessage(intl, 'individual', 'group.filter.sector'),
-          location__parent__parent__parent__name: formatMessage(intl, 'individual', 'group.filter.district'),
-          location__parent__parent__name: formatMessage(intl, 'individual', 'group.filter.ta'),
-          location__parent__name: formatMessage(intl, 'individual', 'group.filter.gvh'),
-          location__name: formatMessage(intl, 'individual', 'group.filter.village'),
-        }}
+        exportFields={groupExportFields}
+        exportFieldsColumns={Object.fromEntries(
+          Object.entries(groupExportFieldLabels || {}).map(([field, labelKey]) => [
+            field,
+            formatMessage(intl, 'individual', labelKey),
+          ]),
+        )}
         chooseExportableColumns
-        chooseFileFormat
-        exportFileFormats={EXPORT_FILE_FORMATS}
-        exportFileFormat={exportFileFormat}
-        setExportFileFormat={setExportFileFormat}
         exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
         enableHeaderActionButtons={!readOnly}
         downloadWithIconButton

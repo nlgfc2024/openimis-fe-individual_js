@@ -46,4 +46,8 @@ None
 * `state.core.user`, to access user info (rights,...)
 
 ## Configurations Options
-None
+* `fe-individual.group_export_fields`: group export fields; defaults to `["id", "json_ext"]`.
+* `fe-individual.group_export_field_labels`: map of field names to `individual` translation IDs; defaults to `{"id": "group.id"}`.
+* `fe-individual.group_kyc_export`: optional object that enables the KYC group export when its `fields` array is non-empty. It accepts `fields`, `columnLabels` (field-to-translation-ID map), and optional `label`, `pickerLabel`, `pickerPubRef`, `pickerProps`, and `parameters`. It is omitted by default so installations without KYC support do not show the option.
+
+The KYC export requires the configured fields and corresponding backend export support to be available in the installation.
