@@ -11,6 +11,7 @@ import {
   EXPORT_FILE_FORMATS,
   coreConfirm,
   clearConfirm,
+  decodeId,
   journalize,
 } from '@openimis/fe-core';
 import { bindActionCreators } from 'redux';
@@ -240,16 +241,24 @@ function GroupSearcher({
     bank: 'Bank / Provider',
   };
   const groupExportOptions = [
-    { label: 'Download household data' },
+    { id: 'household-data', label: 'Download household data' },
     {
+      id: 'kyc-payment-details',
       label: 'Download KYC payment details',
-      requiresPhase: true,
       fields: kycExportFields,
       columns: kycExportColumns,
+      additionalFields: {},
       parameters: [
         'includePrimaryRecipientData: true',
         'primaryRecipientOnly: true',
       ],
+      picker: {
+        pubRef: 'socialProtection.BenefitPlanPicker',
+        props: { type: 'GROUP' },
+        label: formatMessage(intl, 'individual', 'export.kycPhase'),
+        required: true,
+      },
+      getParameters: (phase) => (phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []),
     },
   ];
   useEffect(() => {

@@ -158,6 +158,7 @@
   "export.lastName": "last_name",
   "export.dob": "date_of_birth",
   "export.kycPreset": "Select KYC fields",
+  "export.kycPhase": "Phase",
   "export.role": "role",
   "groupIndividual.individual.role": "Role",
   "groupIndividual.individual.recipientType": "Recipient Type",
