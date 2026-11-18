@@ -190,7 +190,10 @@ function IndividualsUploadHistoryDialog({
                         {item.userCreated.username}
                       </TableCell>
                       <TableCell>
-                        <CollapsableErrorList errors={item.dataUpload.error} />
+                        <CollapsableErrorList
+                          errors={item.dataUpload.error}
+                          status={item.dataUpload.status}
+                        />
                       </TableCell>
                       <TableCell>
                         {[

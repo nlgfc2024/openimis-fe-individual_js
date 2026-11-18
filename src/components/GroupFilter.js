@@ -1,6 +1,12 @@
 import React from 'react';
+import {
+  withStyles,
+  withTheme,
+} from '@material-ui/core';
 import { useModulesManager } from '@openimis/fe-core';
+import { injectIntl } from 'react-intl';
 import Filter from './Filter';
+import { defaultFilterStyles } from '../util/styles';
 
 function GroupFilter({
   intl, classes, filters, onChangeFilters,
@@ -28,4 +34,4 @@ function GroupFilter({
   );
 }
 
-export default GroupFilter;
+export default injectIntl(withTheme(withStyles(defaultFilterStyles)(GroupFilter)));

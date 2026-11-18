@@ -4,7 +4,6 @@ export default function downloadTemplate() {
   const url = new URL(
     `${window.location.origin}${baseApiUrl}/individual/download_template_file/`,
   );
-
   fetch(url)
     .then((response) => response.blob())
     .then((blob) => {

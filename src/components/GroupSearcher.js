@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect, useState, useRef, useMemo,
+} from 'react';
 import { injectIntl } from 'react-intl';
 import {
   withModulesManager,
@@ -10,6 +12,7 @@ import {
   downloadExport,
   coreConfirm,
   clearConfirm,
+  decodeId,
   journalize,
 } from '@openimis/fe-core';
 import { bindActionCreators } from 'redux';
@@ -43,6 +46,16 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
+import {
+  DEFAULT_GROUP_EXPORT_FIELDS,
+  getGroupExportFields,
+  hasConfiguredKycGroupExport,
+} from '../util/group-export-config';
+
+const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
+  id: 'group.id',
+  code: 'group.code',
+};
 
 function GroupSearcher({
   intl,
@@ -205,7 +218,64 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
+  const configuredGroupExportFields = modulesManager.getConf(
+    'fe-individual',
+    'group_export_fields',
+    DEFAULT_GROUP_EXPORT_FIELDS,
+  );
+  const groupExportFields = getGroupExportFields(configuredGroupExportFields);
+  const groupExportFieldLabels = modulesManager.getConf(
+    'fe-individual',
+    'group_export_field_labels',
+    DEFAULT_GROUP_EXPORT_FIELD_LABELS,
+  );
+  const groupKycExport = modulesManager.getConf('fe-individual', 'group_kyc_export', null);
+  const groupExportOptions = useMemo(() => {
+    if (!hasConfiguredKycGroupExport(groupKycExport)) {
+      return [];
+    }
 
+    const kycExportColumns = Object.fromEntries(
+      groupKycExport.fields.map((field) => [
+        field,
+        formatMessage(intl, 'individual', groupKycExport.columnLabels?.[field] || field),
+      ]),
+    );
+    return [
+      {
+        id: 'group-data',
+        label: formatMessage(intl, 'individual', 'export.groupData'),
+      },
+      {
+        id: 'kyc-payment-details',
+        label: formatMessage(
+          intl,
+          'individual',
+          groupKycExport.label || 'export.additionalGroupData',
+        ),
+        fields: groupKycExport.fields,
+        columns: kycExportColumns,
+        additionalFields: {},
+        parameters: groupKycExport.parameters || [
+          'includePrimaryRecipientData: true',
+          'primaryRecipientOnly: true',
+        ],
+        picker: {
+          pubRef: groupKycExport.pickerPubRef || 'socialProtection.BenefitPlanPicker',
+          props: groupKycExport.pickerProps || { type: 'GROUP' },
+          label: formatMessage(
+            intl,
+            'individual',
+            groupKycExport.pickerLabel || 'export.benefitPlan',
+          ),
+          required: true,
+        },
+        getParameters: (phase) => (
+          phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []
+        ),
+      },
+    ];
+  }, [groupKycExport, intl]);
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
@@ -214,7 +284,8 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      downloadExport(groupExport, `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`)();
+      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+      downloadExport(groupExport, fileName)();
       clearGroupExport();
     }
 
@@ -255,14 +326,15 @@ function GroupSearcher({
         defaultPageSize={DEFAULT_PAGE_SIZE}
         rowIdentifier={rowIdentifier}
         defaultFilters={defaultFilters()}
-        exportFields={[
-          'id',
-          'json_ext',
-        ]}
-        exportFieldsColumns={{
-          id: 'ID',
-        }}
-        exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
+        exportFields={groupExportFields}
+        exportFieldsColumns={Object.fromEntries(
+          Object.entries(groupExportFieldLabels || {}).map(([field, labelKey]) => [
+            field,
+            formatMessage(intl, 'individual', labelKey),
+          ]),
+        )}
+        chooseExportableColumns
+        exportFieldLabel={formatMessage(intl, 'individual', 'export.groupLabel')}
         enableHeaderActionButtons={!readOnly}
         downloadWithIconButton
         compactLayout
@@ -285,6 +357,7 @@ function GroupSearcher({
           exportFetch: downloadGroups,
           cacheFiltersKey: 'groupsFilterCache',
         })}
+        exportOptions={groupExportOptions}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...searcherOrderingProps(preserveBackendOrder, sorts, 'id')}
         // eslint-disable-next-line react/jsx-props-no-spreading, max-len

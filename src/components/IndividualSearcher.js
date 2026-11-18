@@ -63,7 +63,10 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
-import { BASE_INDIVIDUAL_EXPORT_FIELDS } from '../util/individual-export';
+import {
+  BASE_INDIVIDUAL_EXPORT_FIELDS,
+  getIndividualExportParameters,
+} from '../util/individual-export';
 
 function IndividualSearcher({
   intl,
@@ -111,8 +114,8 @@ function IndividualSearcher({
   const [exportConfigOpen, setExportConfigOpen] = useState(false);
   const [exportParameters, setExportParameters] = useState([]);
   const [selectedExportFields, setSelectedExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
-  const IndividualsUploadDialog = modulesManager.getRef("individual.IndividualsUploadDialog");
-  const IndividualsUploadHistoryDialog = modulesManager.getRef("individual.IndividualsUploadHistoryDialog");
+  const IndividualsUploadDialog = modulesManager.getRef('individual.IndividualsUploadDialog');
+  const IndividualsUploadHistoryDialog = modulesManager.getRef('individual.IndividualsUploadHistoryDialog');
   const showUploadHistory = modulesManager.getConf('fe-individual', 'show_upload_history', true);
   const [exportFields, setExportFields] = useState(BASE_INDIVIDUAL_EXPORT_FIELDS);
   const exportFieldsColumns = {
@@ -173,15 +176,11 @@ function IndividualSearcher({
   };
 
   const confirmIndividualExport = () => {
-    const selectedColumns = Object.fromEntries(
-      selectedExportFields.map((field) => [field, exportFieldsColumns[field] || field]),
-    );
-    const parameters = exportParameters.filter((parameter) => (
-      !parameter.startsWith('fields:') && !parameter.startsWith('fieldsColumns:')
+    downloadIndividuals(getIndividualExportParameters(
+      exportParameters,
+      selectedExportFields,
+      exportFieldsColumns,
     ));
-    parameters.push(`fields: ${JSON.stringify(selectedExportFields)}`);
-    parameters.push(`fieldsColumns: "${JSON.stringify(selectedColumns).replace(/"/g, '\\"')}"`);
-    downloadIndividuals(parameters);
     setExportConfigOpen(false);
   };
 
@@ -376,17 +375,37 @@ function IndividualSearcher({
     {
       authorized: !readOnly && !!IndividualsUploadDialog,
       render: ({ className, size }) => (
-        <IndividualsUploadDialog renderTrigger={({ onClick, label }) => (
-          <SearcherActionButton onClick={onClick} startIcon={<CloudUploadIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
-        )} />
+        <IndividualsUploadDialog
+          renderTrigger={({ onClick, label }) => (
+            <SearcherActionButton
+              onClick={onClick}
+              startIcon={<CloudUploadIcon />}
+              label={label}
+              variant="outlined"
+              size={size}
+              className={className}
+              borderless={false}
+            />
+          )}
+        />
       ),
     },
     {
       authorized: !readOnly && showUploadHistory && !!IndividualsUploadHistoryDialog,
       render: ({ className, size }) => (
-        <IndividualsUploadHistoryDialog renderTrigger={({ onClick, label }) => (
-          <SearcherActionButton onClick={onClick} startIcon={<HistoryIcon />} label={label} variant="outlined" size={size} className={className} borderless={false} />
-        )} />
+        <IndividualsUploadHistoryDialog
+          renderTrigger={({ onClick, label }) => (
+            <SearcherActionButton
+              onClick={onClick}
+              startIcon={<HistoryIcon />}
+              label={label}
+              variant="outlined"
+              size={size}
+              className={className}
+              borderless={false}
+            />
+          )}
+        />
       ),
     },
   ];
@@ -401,7 +420,9 @@ function IndividualSearcher({
         fetchingItems={fetchingIndividuals}
         fetchedItems={fetchedIndividuals}
         errorItems={errorIndividuals}
-        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', { individualsTotalCount })}
+        tableTitle={formatMessageWithValues(intl, 'individual', 'individuals.searcherResultsTitle', {
+          individualsTotalCount,
+        })}
         headers={headers}
         columnWidths={[
           '18%',
