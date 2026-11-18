@@ -1,4 +1,4 @@
-export const DEFAULT_GROUP_EXPORT_FIELDS = ['id', 'json_ext'];
+export const DEFAULT_GROUP_EXPORT_FIELDS = ['id', 'code'];
 
 export const getGroupExportFields = (configuredFields) => (
   Array.isArray(configuredFields) ? configuredFields : DEFAULT_GROUP_EXPORT_FIELDS

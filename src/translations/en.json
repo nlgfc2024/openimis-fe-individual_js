@@ -132,6 +132,7 @@
   "groupHistoryList.pageTitle": "Groups History",
   "groupHistoryList.searcherResultsTitle": "{groupHistoryTotalCount} Historical Records Found",
   "export.label": "DOWNLOAD",
+  "export.groupLabel": "Export to CSV",
   "export.dateCreated": "Date Created",
   "export.id": "id",
   "export.filename.individuals": "individuals_export",

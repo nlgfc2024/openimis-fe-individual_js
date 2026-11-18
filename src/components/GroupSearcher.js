@@ -52,7 +52,10 @@ import {
   hasConfiguredKycGroupExport,
 } from '../util/group-export-config';
 
-const DEFAULT_GROUP_EXPORT_FIELD_LABELS = { id: 'group.id' };
+const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
+  id: 'group.id',
+  code: 'group.code',
+};
 
 function GroupSearcher({
   intl,
@@ -331,7 +334,7 @@ function GroupSearcher({
           ]),
         )}
         chooseExportableColumns
-        exportFieldLabel={formatMessage(intl, 'individual', 'export.label')}
+        exportFieldLabel={formatMessage(intl, 'individual', 'export.groupLabel')}
         enableHeaderActionButtons={!readOnly}
         downloadWithIconButton
         compactLayout

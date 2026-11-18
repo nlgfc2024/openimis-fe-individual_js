@@ -10,10 +10,10 @@ const {
 } = loadEsModule(path.join(__dirname, '../src/util/group-export-config.js'));
 
 test('group exports default to neutral fields and accept configured fields', () => {
-  assert.deepEqual(getGroupExportFields(undefined), ['id', 'json_ext']);
-  assert.deepEqual(DEFAULT_GROUP_EXPORT_FIELDS, ['id', 'json_ext']);
-  assert.deepEqual(getGroupExportFields(['id', 'code']), ['id', 'code']);
-  assert.deepEqual(getGroupExportFields('id'), ['id', 'json_ext']);
+  assert.deepEqual(getGroupExportFields(undefined), ['id', 'code']);
+  assert.deepEqual(DEFAULT_GROUP_EXPORT_FIELDS, ['id', 'code']);
+  assert.deepEqual(getGroupExportFields(['id', 'location__name']), ['id', 'location__name']);
+  assert.deepEqual(getGroupExportFields('id'), ['id', 'code']);
 });
 
 test('KYC group export is available only with configured fields', () => {
