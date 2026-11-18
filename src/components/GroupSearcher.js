@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect, useState, useRef, useMemo,
+} from 'react';
 import { injectIntl } from 'react-intl';
 import {
   withModulesManager,
@@ -45,6 +47,40 @@ import {
   searcherModeProps,
   searcherOrderingProps,
 } from '../util/searcher-mode';
+
+const KYC_EXPORT_FIELDS = [
+  'location__parent__parent__parent__name',
+  'location__parent__parent__name',
+  'kyc_catchment',
+  'location__parent__name',
+  'location__name',
+  'kyc_phase',
+  'json_ext__form_number',
+  'primary_recipient_full_name',
+  'primary_recipient_national_id',
+  'primary_recipient_dob',
+  'primary_recipient_gender',
+  'primary_recipient_account_number',
+  'primary_recipient_account_name',
+  'primary_recipient_bank',
+];
+
+const KYC_EXPORT_COLUMN_LABELS = {
+  location__parent__parent__parent__name: 'export.kycDistrict',
+  location__parent__parent__name: 'export.kycTraditionalAuthority',
+  kyc_catchment: 'export.kycCatchment',
+  location__parent__name: 'export.kycGroupVillageHead',
+  location__name: 'export.kycVillage',
+  kyc_phase: 'export.kycPhase',
+  json_ext__form_number: 'export.kycHouseholdFormNumber',
+  primary_recipient_full_name: 'export.kycFullName',
+  primary_recipient_national_id: 'export.kycNationalId',
+  primary_recipient_dob: 'export.kycDateOfBirth',
+  primary_recipient_gender: 'export.kycGender',
+  primary_recipient_account_number: 'export.kycAccountNumber',
+  primary_recipient_account_name: 'export.kycAccountName',
+  primary_recipient_bank: 'export.kycBankProvider',
+};
 
 function GroupSearcher({
   intl,
@@ -210,59 +246,40 @@ function GroupSearcher({
   // The generic core exporter currently produces CSV content. Keep its file
   // extension honest until XLSX generation is implemented in core.
   const [exportFileFormat, setExportFileFormat] = useState(EXPORT_FILE_FORMATS.csv);
-  const kycExportFields = [
-    'location__parent__parent__parent__name',
-    'location__parent__parent__name',
-    'kyc_catchment',
-    'location__parent__name',
-    'location__name',
-    'kyc_phase',
-    'json_ext__form_number',
-    'primary_recipient_full_name',
-    'primary_recipient_national_id',
-    'primary_recipient_dob',
-    'primary_recipient_gender',
-    'primary_recipient_account_number',
-    'primary_recipient_account_name',
-    'primary_recipient_bank',
-  ];
-  const kycExportColumns = {
-    location__parent__parent__parent__name: 'District',
-    location__parent__parent__name: 'Traditional Authority',
-    kyc_catchment: 'Catchment',
-    location__parent__name: 'Group Village Head',
-    location__name: 'Village',
-    kyc_phase: 'Phase',
-    json_ext__form_number: 'Household Form Number',
-    primary_recipient_full_name: 'Full Name',
-    primary_recipient_national_id: 'National ID',
-    primary_recipient_dob: 'Date of Birth',
-    primary_recipient_gender: 'Gender',
-    primary_recipient_account_number: 'Account Number',
-    primary_recipient_account_name: 'Account Name',
-    primary_recipient_bank: 'Bank / Provider',
-  };
-  const groupExportOptions = [
-    { id: 'household-data', label: 'Download household data' },
-    {
-      id: 'kyc-payment-details',
-      label: 'Download KYC payment details',
-      fields: kycExportFields,
-      columns: kycExportColumns,
-      additionalFields: {},
-      parameters: [
-        'includePrimaryRecipientData: true',
-        'primaryRecipientOnly: true',
-      ],
-      picker: {
-        pubRef: 'socialProtection.BenefitPlanPicker',
-        props: { type: 'GROUP' },
-        label: formatMessage(intl, 'individual', 'export.kycPhase'),
-        required: true,
+  const groupExportOptions = useMemo(() => {
+    const kycExportColumns = Object.entries(KYC_EXPORT_COLUMN_LABELS).reduce(
+      (columns, [field, labelKey]) => ({
+        ...columns,
+        [field]: formatMessage(intl, 'individual', labelKey),
+      }),
+      {},
+    );
+
+    return [
+      {
+        id: 'household-data',
+        label: formatMessage(intl, 'individual', 'export.householdData'),
       },
-      getParameters: (phase) => (phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []),
-    },
-  ];
+      {
+        id: 'kyc-payment-details',
+        label: formatMessage(intl, 'individual', 'export.kycPaymentDetails'),
+        fields: KYC_EXPORT_FIELDS,
+        columns: kycExportColumns,
+        additionalFields: {},
+        parameters: [
+          'includePrimaryRecipientData: true',
+          'primaryRecipientOnly: true',
+        ],
+        picker: {
+          pubRef: 'socialProtection.BenefitPlanPicker',
+          props: { type: 'GROUP' },
+          label: formatMessage(intl, 'individual', 'export.kycPhase'),
+          required: true,
+        },
+        getParameters: (phase) => (phase?.id ? [`benefitPlanId: "${decodeId(phase.id)}"`] : []),
+      },
+    ];
+  }, [intl]);
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
