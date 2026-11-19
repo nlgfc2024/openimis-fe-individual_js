@@ -11,7 +11,6 @@ import {
   historyPush,
   downloadExport,
   baseApiUrl,
-  openBlob,
   coreConfirm,
   clearConfirm,
   decodeId,
@@ -63,6 +62,20 @@ const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
 const isKycExport = (parameters = []) => parameters.some(
   (parameter) => /^\s*primaryRecipientOnly\s*:\s*true\s*$/.test(parameter),
 );
+
+const downloadKycCsv = (blob, filename) => {
+  const anchor = document.createElement('a');
+  const url = window.URL.createObjectURL(blob);
+  anchor.style = 'display: none';
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  setTimeout(() => {
+    document.body.removeChild(anchor);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+};
 
 function GroupSearcher({
   intl,
@@ -297,10 +310,15 @@ function GroupSearcher({
           `${window.location.origin}${baseApiUrl}/core/fetch_export?export=${groupExport}`,
         );
         fetch(url)
-          .then((response) => response.blob())
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Export request failed with status ${response.status}`);
+            }
+            return response.blob();
+          })
           .then(async (blob) => {
             const csv = await blob.text();
-            openBlob(blob, kycExportFilename(csv), 'csv');
+            downloadKycCsv(blob, kycExportFilename(csv));
           })
           .catch((error) => console.error('KYC export failed, reason: ', error));
       } else {
