@@ -10,7 +10,6 @@ import {
   withHistory,
   historyPush,
   downloadExport,
-  baseApiUrl,
   coreConfirm,
   clearConfirm,
   decodeId,
@@ -62,20 +61,6 @@ const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
 const isKycExport = (parameters = []) => parameters.some(
   (parameter) => /^\s*primaryRecipientOnly\s*:\s*true\s*$/.test(parameter),
 );
-
-const downloadKycCsv = (blob, filename) => {
-  const anchor = document.createElement('a');
-  const url = window.URL.createObjectURL(blob);
-  anchor.style = 'display: none';
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  setTimeout(() => {
-    document.body.removeChild(anchor);
-    window.URL.revokeObjectURL(url);
-  }, 100);
-};
 
 function GroupSearcher({
   intl,
@@ -305,26 +290,13 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      if (pendingKycExport) {
-        const url = new URL(
-          `${window.location.origin}${baseApiUrl}/core/fetch_export?export=${groupExport}`,
-        );
-        fetch(url)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Export request failed with status ${response.status}`);
-            }
-            return response.blob();
-          })
-          .then(async (blob) => {
-            const csv = await blob.text();
-            downloadKycCsv(blob, kycExportFilename(csv));
-          })
-          .catch((error) => console.error('KYC export failed, reason: ', error));
-      } else {
-        const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
-        downloadExport(groupExport, fileName)();
-      }
+      // Keep the established download helper: its request is authenticated and
+      // works in all supported deployments. District-aware naming needs export
+      // metadata from the backend rather than a second client-side download.
+      const fileName = pendingKycExport
+        ? kycExportFilename('')
+        : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+      downloadExport(groupExport, fileName)();
       clearGroupExport();
       setPendingKycExport(false);
     }
