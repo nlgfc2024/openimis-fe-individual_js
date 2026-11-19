@@ -57,6 +57,19 @@ const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
   code: 'group.code',
 };
 
+const isKycExport = (parameters = []) => parameters.some(
+  (parameter) => /^\s*primaryRecipientOnly\s*:\s*true\s*$/.test(parameter),
+);
+
+const kycExportFilename = (date = new Date()) => {
+  const formattedDate = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+  return `kyc-data-multiple-districts-${formattedDate}.csv`;
+};
+
 function GroupSearcher({
   intl,
   modulesManager,
@@ -218,6 +231,7 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
+  const [pendingKycExport, setPendingKycExport] = useState(false);
   const configuredGroupExportFields = modulesManager.getConf(
     'fe-individual',
     'group_export_fields',
@@ -284,13 +298,21 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+      const fileName = pendingKycExport
+        ? kycExportFilename()
+        : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
       downloadExport(groupExport, fileName)();
       clearGroupExport();
+      setPendingKycExport(false);
     }
 
     return setFailedExport(false);
-  }, [groupExport]);
+  }, [groupExport, pendingKycExport]);
+
+  const exportGroups = (parameters) => {
+    setPendingKycExport(isKycExport(parameters));
+    downloadGroups(parameters);
+  };
 
   const groupFilter = (props) => (
     <GroupFilter
@@ -354,7 +376,7 @@ function GroupSearcher({
           readOnly,
           FilterPane: groupFilter,
           onDoubleClick,
-          exportFetch: downloadGroups,
+          exportFetch: exportGroups,
           cacheFiltersKey: 'groupsFilterCache',
         })}
         exportOptions={groupExportOptions}
