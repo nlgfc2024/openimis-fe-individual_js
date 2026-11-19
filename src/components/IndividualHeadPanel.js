@@ -11,6 +11,7 @@ import {
 import { injectIntl } from 'react-intl';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import AdditionalFieldsDialog from './dialogs/AdditionalFieldsDialog';
+import KycPaymentDetails from './KycPaymentDetails';
 
 const styles = (theme) => ({
   tableTitle: theme.table.title,
@@ -27,6 +28,9 @@ class IndividualHeadPanel extends FormPanel {
     } = this.props;
     const individual = { ...edited };
     const currentDate = new Date();
+    const jsonExtForDisplay = typeof individual.jsonExt === 'string'
+      ? individual.jsonExt
+      : JSON.stringify(individual.jsonExt ?? {});
     const locReadOnly = individual.groupindividuals?.edges?.length > 0;
     const locTitle = locReadOnly ? formatMessage(intl, 'individual', 'individual.locationEditDisabledTitle') : '';
 
@@ -90,7 +94,7 @@ class IndividualHeadPanel extends FormPanel {
           </Grid>
           <Grid item xs={3} className={classes.item}>
             <AdditionalFieldsDialog
-              individualJsonExt={individual?.jsonExt}
+              individualJsonExt={jsonExtForDisplay}
             />
           </Grid>
           <Grid item xs={12}>
@@ -103,6 +107,15 @@ class IndividualHeadPanel extends FormPanel {
               onChange={(v) => this.updateAttribute('location', v)}
               filterLabels={false}
               title={locTitle}
+            />
+          </Grid>
+          <Grid item xs={12} className={classes.item}>
+            <Typography>
+              <FormattedMessage module="individual" id="individual.kycPayment.title" />
+            </Typography>
+            <KycPaymentDetails
+              jsonExt={individual?.jsonExt}
+              onChange={(jsonExt) => this.updateAttribute('jsonExt', jsonExt)}
             />
           </Grid>
         </Grid>

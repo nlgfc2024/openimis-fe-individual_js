@@ -257,11 +257,14 @@ function formatCreateGroupGQL(group) {
 }
 
 function formatIndividualGQL(individual) {
+  const jsonExt = individual?.jsonExt
+    ? (typeof individual.jsonExt === 'string' ? individual.jsonExt : JSON.stringify(individual.jsonExt))
+    : null;
   return `
     ${individual?.id ? `id: "${individual.id}"` : ''}
     ${individual?.firstName ? `firstName: "${formatGQLString(individual.firstName)}"` : ''}
     ${individual?.lastName ? `lastName: "${formatGQLString(individual.lastName)}"` : ''}
-    ${individual?.jsonExt ? `jsonExt: ${JSON.stringify(individual.jsonExt)}` : ''}
+    ${jsonExt ? `jsonExt: ${JSON.stringify(jsonExt)}` : ''}
     ${individual?.dob ? `dob: "${dateTimeToDate(individual.dob)}"` : ''}
     ${individual?.location ? `locationId: ${decodeId(individual.location.id)}` : ''}
   `;
