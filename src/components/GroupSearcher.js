@@ -51,7 +51,6 @@ import {
   getGroupExportFields,
   hasConfiguredKycGroupExport,
 } from '../util/group-export-config';
-import { kycExportFilename } from '../util/kyc-export-filename';
 
 const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
   id: 'group.id',
@@ -290,11 +289,8 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      // Keep the established download helper: its request is authenticated and
-      // works in all supported deployments. District-aware naming needs export
-      // metadata from the backend rather than a second client-side download.
       const fileName = pendingKycExport
-        ? kycExportFilename('')
+        ? 'KYC-data.csv'
         : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
       downloadExport(groupExport, fileName)();
       clearGroupExport();
