@@ -10,6 +10,8 @@ import {
   withHistory,
   historyPush,
   downloadExport,
+  baseApiUrl,
+  openBlob,
   coreConfirm,
   clearConfirm,
   decodeId,
@@ -51,6 +53,7 @@ import {
   getGroupExportFields,
   hasConfiguredKycGroupExport,
 } from '../util/group-export-config';
+import { kycExportFilename } from '../util/kyc-export-filename';
 
 const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
   id: 'group.id',
@@ -60,15 +63,6 @@ const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
 const isKycExport = (parameters = []) => parameters.some(
   (parameter) => /^\s*primaryRecipientOnly\s*:\s*true\s*$/.test(parameter),
 );
-
-const kycExportFilename = (date = new Date()) => {
-  const formattedDate = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-');
-  return `kyc-data-multiple-districts-${formattedDate}.csv`;
-};
 
 function GroupSearcher({
   intl,
@@ -298,10 +292,21 @@ function GroupSearcher({
 
   useEffect(() => {
     if (groupExport) {
-      const fileName = pendingKycExport
-        ? kycExportFilename()
-        : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
-      downloadExport(groupExport, fileName)();
+      if (pendingKycExport) {
+        const url = new URL(
+          `${window.location.origin}${baseApiUrl}/core/fetch_export?export=${groupExport}`,
+        );
+        fetch(url)
+          .then((response) => response.blob())
+          .then(async (blob) => {
+            const csv = await blob.text();
+            openBlob(blob, kycExportFilename(csv), 'csv');
+          })
+          .catch((error) => console.error('KYC export failed, reason: ', error));
+      } else {
+        const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+        downloadExport(groupExport, fileName)();
+      }
       clearGroupExport();
       setPendingKycExport(false);
     }
