@@ -137,6 +137,7 @@
   "export.id": "id",
   "export.filename.individuals": "individuals_export",
   "export.filename.groups": "groups_export",
+  "export.filename.kyc": "KYC-data",
   "export.firstName": "first_name",
   "export.lastName": "last_name",
   "export.dob": "date_of_birth",

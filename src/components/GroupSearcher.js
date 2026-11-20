@@ -222,7 +222,7 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
-  const [pendingKycExport, setPendingKycExport] = useState(false);
+  const pendingKycExportRef = useRef(false);
   const configuredGroupExportFields = modulesManager.getConf(
     'fe-individual',
     'group_export_fields',
@@ -284,24 +284,25 @@ function GroupSearcher({
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
+      pendingKycExportRef.current = false;
     }
   }, [errorGroupExport]);
 
   useEffect(() => {
     if (groupExport) {
-      const fileName = pendingKycExport
-        ? 'KYC-data.csv'
+      const fileName = pendingKycExportRef.current
+        ? `${formatMessage(intl, 'individual', 'export.filename.kyc')}.csv`
         : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
       downloadExport(groupExport, fileName)();
       clearGroupExport();
-      setPendingKycExport(false);
+      pendingKycExportRef.current = false;
     }
 
     return setFailedExport(false);
-  }, [groupExport, pendingKycExport]);
+  }, [groupExport]);
 
   const exportGroups = (parameters) => {
-    setPendingKycExport(isKycExport(parameters));
+    pendingKycExportRef.current = isKycExport(parameters);
     downloadGroups(parameters);
   };
 
