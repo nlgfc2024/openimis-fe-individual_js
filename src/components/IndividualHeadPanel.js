@@ -11,7 +11,6 @@ import {
 import { injectIntl } from 'react-intl';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import AdditionalFieldsDialog from './dialogs/AdditionalFieldsDialog';
-import KycPaymentDetails from './KycPaymentDetails';
 
 const styles = (theme) => ({
   tableTitle: theme.table.title,
@@ -107,15 +106,6 @@ class IndividualHeadPanel extends FormPanel {
               onChange={(v) => this.updateAttribute('location', v)}
               filterLabels={false}
               title={locTitle}
-            />
-          </Grid>
-          <Grid item xs={12} className={classes.item}>
-            <Typography>
-              <FormattedMessage module="individual" id="individual.kycPayment.title" />
-            </Typography>
-            <KycPaymentDetails
-              jsonExt={individual?.jsonExt}
-              onChange={(jsonExt) => this.updateAttribute('jsonExt', jsonExt)}
             />
           </Grid>
         </Grid>
