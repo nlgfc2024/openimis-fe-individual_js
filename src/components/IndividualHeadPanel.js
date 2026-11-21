@@ -27,6 +27,9 @@ class IndividualHeadPanel extends FormPanel {
     } = this.props;
     const individual = { ...edited };
     const currentDate = new Date();
+    const jsonExtForDisplay = typeof individual.jsonExt === 'string'
+      ? individual.jsonExt
+      : JSON.stringify(individual.jsonExt ?? {});
     const locReadOnly = individual.groupindividuals?.edges?.length > 0;
     const locTitle = locReadOnly ? formatMessage(intl, 'individual', 'individual.locationEditDisabledTitle') : '';
 
@@ -90,7 +93,7 @@ class IndividualHeadPanel extends FormPanel {
           </Grid>
           <Grid item xs={3} className={classes.item}>
             <AdditionalFieldsDialog
-              individualJsonExt={individual?.jsonExt}
+              individualJsonExt={jsonExtForDisplay}
             />
           </Grid>
           <Grid item xs={12}>
