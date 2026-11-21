@@ -57,6 +57,10 @@ const DEFAULT_GROUP_EXPORT_FIELD_LABELS = {
   code: 'group.code',
 };
 
+const isKycExport = (parameters = []) => parameters.some(
+  (parameter) => /^\s*primaryRecipientOnly\s*:\s*true\s*$/.test(parameter),
+);
+
 function GroupSearcher({
   intl,
   modulesManager,
@@ -218,6 +222,7 @@ function GroupSearcher({
   };
 
   const [failedExport, setFailedExport] = useState(false);
+  const pendingKycExportRef = useRef(false);
   const configuredGroupExportFields = modulesManager.getConf(
     'fe-individual',
     'group_export_fields',
@@ -279,18 +284,27 @@ function GroupSearcher({
   useEffect(() => {
     if (errorGroupExport) {
       setFailedExport(true);
+      pendingKycExportRef.current = false;
     }
   }, [errorGroupExport]);
 
   useEffect(() => {
     if (groupExport) {
-      const fileName = `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
+      const fileName = pendingKycExportRef.current
+        ? `${formatMessage(intl, 'individual', 'export.filename.kyc')}.csv`
+        : `${formatMessage(intl, 'individual', 'export.filename.groups')}.csv`;
       downloadExport(groupExport, fileName)();
       clearGroupExport();
+      pendingKycExportRef.current = false;
     }
 
     return setFailedExport(false);
   }, [groupExport]);
+
+  const exportGroups = (parameters) => {
+    pendingKycExportRef.current = isKycExport(parameters);
+    downloadGroups(parameters);
+  };
 
   const groupFilter = (props) => (
     <GroupFilter
@@ -354,7 +368,7 @@ function GroupSearcher({
           readOnly,
           FilterPane: groupFilter,
           onDoubleClick,
-          exportFetch: downloadGroups,
+          exportFetch: exportGroups,
           cacheFiltersKey: 'groupsFilterCache',
         })}
         exportOptions={groupExportOptions}
