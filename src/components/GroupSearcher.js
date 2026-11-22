@@ -294,7 +294,7 @@ function GroupSearcher({
 
   const groupFilter = (props) => (
     <GroupFilter
-      intl={props.intl}
+      intl={intl}
       classes={props.classes}
       filters={props.filters}
       onChangeFilters={props.onChangeFilters}
