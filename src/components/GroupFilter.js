@@ -4,7 +4,6 @@ import {
   withTheme,
 } from '@material-ui/core';
 import { useModulesManager } from '@openimis/fe-core';
-import { injectIntl } from 'react-intl';
 import Filter from './Filter';
 import { defaultFilterStyles } from '../util/styles';
 
@@ -34,4 +33,4 @@ function GroupFilter({
   );
 }
 
-export default injectIntl(withTheme(withStyles(defaultFilterStyles)(GroupFilter)));
+export default withTheme(withStyles(defaultFilterStyles)(GroupFilter));
