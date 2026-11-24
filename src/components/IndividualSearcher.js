@@ -290,6 +290,7 @@ function IndividualSearcher({
       formatters.push((individual) => (
         <Tooltip title={formatMessage(intl, 'individual', 'editButtonTooltip')}>
           <IconButton
+            size="small"
             href={individualUpdatePageUrl(individual)}
             onClick={(e) => e.stopPropagation() && onDoubleClick(individual)}
             disabled={deletedIndividualUuids.includes(individual.id)}
@@ -303,6 +304,7 @@ function IndividualSearcher({
       formatters.push((individual) => (!individual?.isDeleted ? (
         <Tooltip title={formatMessage(intl, INDIVIDUAL_MODULE_NAME, 'deleteButtonTooltip')}>
           <IconButton
+            size="small"
             onClick={() => onDelete(individual)}
             disabled={deletedIndividualUuids.includes(individual.id)}
           >
@@ -312,6 +314,7 @@ function IndividualSearcher({
       ) : (
         <Tooltip title={formatMessage(intl, INDIVIDUAL_MODULE_NAME, 'undoButtonTooltip')}>
           <IconButton
+            size="small"
             onClick={() => onUndo(individual)}
             disabled={undoIndividualUuids.includes(individual.id)}
           >
@@ -429,8 +432,9 @@ function IndividualSearcher({
           '18%',
           '12%',
           ...Array(LOC_LEVELS).fill(undefined),
-          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_UPDATE) ? ['48px'] : []),
-          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['48px'] : []),
+          // A small icon button (30px) and the cell's padding
+          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_UPDATE) ? ['72px'] : []),
+          ...(!readOnly && rights.includes(RIGHT_INDIVIDUAL_DELETE) ? ['72px'] : []),
         ]}
         itemFormatters={itemFormatters}
         rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
