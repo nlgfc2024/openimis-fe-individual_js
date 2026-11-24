@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Paper, Grid } from '@material-ui/core';
-import { Contributions } from '@openimis/fe-core';
+import { Contributions, useModulesManager } from '@openimis/fe-core';
 import { injectIntl } from 'react-intl';
 import { withTheme, withStyles } from '@material-ui/core/styles';
 import {
@@ -40,7 +40,17 @@ function IndividualTabPanel({
   setEditedGroupIndividual,
   groupIndividualIds,
 }) {
-  const [activeTab, setActiveTab] = useState(individual ? BENEFIT_PLANS_LIST_TAB_VALUE : INDIVIDUALS_LIST_TAB_VALUE);
+  const modulesManager = useModulesManager();
+  // An installation that drops the Programs tab opens the Individual page on another one
+  const individualDefaultTab = modulesManager.getConf(
+    'fe-individual',
+    'individual_default_tab',
+    BENEFIT_PLANS_LIST_TAB_VALUE,
+  );
+  // Until a tab is clicked, the opening tab follows the props, so an individual loaded after the first render
+  // still opens on its default tab
+  const [chosenTab, setActiveTab] = useState(null);
+  const activeTab = chosenTab ?? (individual ? individualDefaultTab : INDIVIDUALS_LIST_TAB_VALUE);
 
   const isSelected = (tab) => tab === activeTab;
 

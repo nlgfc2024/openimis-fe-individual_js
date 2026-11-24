@@ -46,6 +46,8 @@ None
 * `state.core.user`, to access user info (rights,...)
 
 ## Configurations Options
+* `fe-individual.individual_default_tab`: the tab the Individual page opens on; defaults to `BenefitPlansListTab` (Programs). Set it when an installation removes that tab, e.g. `msrEtlKoboApplicationTab` for the Kobo application.
+* `fe-individual."individual.TabPanel.label"` and `fe-individual."individual.TabPanel.panel"`: like any contribution key, set in the module configuration to replace this module's Individual page tabs; `[]` removes them all (Programs, Change log, Tasks, Benefits, Household history), leaving tabs other modules contribute.
 * `fe-individual.group_export_fields`: group export fields; defaults to `["id", "code"]`.
 * `fe-individual.group_export_field_labels`: map of field names to `individual` translation IDs; defaults to `{"id": "group.id", "code": "group.code"}`.
 * `fe-individual.group_kyc_export`: optional object that enables the KYC group export when its `fields` array is non-empty. It accepts `fields`, `columnLabels` (field-to-translation-ID map), and optional `label`, `pickerLabel`, `pickerPubRef`, `pickerProps`, and `parameters`. It is omitted by default so installations without KYC support do not show the option.
